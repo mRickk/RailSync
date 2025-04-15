@@ -1,0 +1,50 @@
+
+services:
+# second service to start
+  nodejsapp:
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+    image: nodejsapp
+    command: [ "nodejs", "index.js" ]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - 3000:3000
+    networks:
+      - outer
+      - inner
+# first service to start
+  mongodb:
+    build:
+      context: ./mongodb
+      dockerfile: Dockerfile
+    image: mymongo
+#command to be executed after execution initialized
+    command: [ "docker-entrypoint.sh", "mongod" ]
+    restart: always
+    healthcheck:
+      test: |
+        host=`hostname --ip-address || echo '127.0.0.1'`;
+        mongo --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
+      interval: 5s
+    ports: #TODO: Remove because only used for mongodb client for debug reasons
+     - 27017:27017 #TODO: Remove because only used for mongodb client for debug reasons
+    networks:
+      - inner
+      - outer #TODO: Remove because only used for mongodb client for debug reasons
+
+networks:
+  inner:
+    driver: bridge
+    internal: true
+    driver_opts:
+       com.docker.network.bridge.name: "br-inner89012"
+       com.docker.network.enable_ipv6: "false"
+  outer:
+    driver: bridge
+    internal: false
+    driver_opts:
+       com.docker.network.bridge.name: "br-outer89012"
+       com.docker.network.enable_ipv6: "false"
