@@ -1,5 +1,5 @@
 var conn = new Mongo();
-var db = conn.getDB('dbsa');
+var db = conn.getDB('dbrs');
 
 db.createCollection('users', function(err, collection) {});
 db.createCollection('reservations', function(err, collection) {});
@@ -18,9 +18,9 @@ db.createCollection('stations', function(err, collection) {});
 // }
 
 db.users.insertMany([
-   {"username": "admin", "mail": "admin@mail.com", "password": "###", "first_name": "Mario", "last_name": "Rossi", "is_admin": true, "registration_date": new Date()},
-   {"username": "riccardo.mazzi", "mail": "riccardo.mazzi@mail.com", "password": "###", "first_name": "Riccardo", "last_name": "Mazzi", "is_admin": false, "registration_date": new Date()},
-   {"username": "nicolas.amadori", "mail": "nicolas.amadori@mail.com", "password": "###", "first_name": "Nicolas", "last_name": "Amadori", "is_admin": false, "registration_date": new Date()},
+   {"username": "admin", "email": "admin@mail.com", "password": "###", "first_name": "Mario", "last_name": "Rossi", "is_admin": true},
+   {"username": "riccardo.mazzi", "email": "riccardo.mazzi@mail.com", "password": "###", "first_name": "Riccardo", "last_name": "Mazzi"},
+   {"username": "nicolas.amadori", "email": "nicolas.amadori@mail.com", "password": "###", "first_name": "Nicolas", "last_name": "Amadori"},
 ])
 
 

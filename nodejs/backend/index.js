@@ -1,26 +1,32 @@
-const express = require('express');
-const mongoose = require('mongoose')
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const Users = require('./src/models/userModels')
-const mongoUrl = 'mongodb://mongodb:27017/dbsa';
+import users from './src/routes/userRoutes.js';
 
+// const express = require('express');
+// const mongoose = require('mongoose');
+// const cors = require('cors');
+// const User = require('./src/models/userModel');
+
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const mongoUrl = 'mongodb://mongodb:27017/dbrs';
 
 const app = express();
 
 app.use(cors()); // Allows cross-origin requests
 // Importing parser
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 global.appRoot = path.resolve(__dirname);
 
 // Try connecting to mongodb
 const connectWithRetry = (retries = 5, delay = 3000) => {
-    mongoose.set('useFindAndModify', false);
     mongoose.connect(mongoUrl, {
-        useNewUrlParser: true,
         connectTimeoutMS: 1000
     })
     .then(() => console.log('MongoDB Connected'))
@@ -38,8 +44,7 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
 };
 connectWithRetry();
 
-var routes = require('./src/routes/routes');
-routes(app);
+app.use('/api/users', users);
 
 app.listen(3000, function() {
     console.log('Node API server started on port 3000!');
