@@ -49,3 +49,6 @@ app.use('/api/users', users);
 app.listen(3000, function() {
     console.log('Node API server started on port 3000!');
 });
+
+// Export the app for testing purposes
+export default app;
