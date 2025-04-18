@@ -11,9 +11,9 @@ const AUDIENCE = process.env.JWT_AUDIENCE || "audience";
 export const get_all_users = async function(req, res) {
 	try {
 		const users = await User.find({}); //'-_id -__v' Per escludere dei campi dall'output
-		res.json(users);
+		return res.json(users);
 	} catch (err) {
-		res.status(500).send(err);
+		return res.status(500).json({ message: err });
 	}
 }
 
@@ -44,17 +44,23 @@ export const update_user = async function(req, res) {
 
 		return res.status(200).json({ message: "User updated successfully" });
 	} catch (error) {
-		return res.status(404).json({ message: error.message });
+		return res.status(500).json({ message: error.message });
 	}
 }
 
 export const authenticate = async function(req, res) {
 	try {
 		const { username, password } = req.body;
+
+		if (!username || !password) {
+			return res.status(400).json({ message: "Username and password are required" });
+		}
+
 		const token = {};
 		const user = await User.findOne({ username: username }).exec();
-		if (!user || !await verify(user.data.password, password)) {
-			return res.status(401).send("Invalid credentials");
+
+		if (!user || !await verify(user.password, password)) {
+			return res.status(401).json({ message: "Invalid credentials" });
 		}
 
 		token.is_admin = user.is_admin;
@@ -70,7 +76,7 @@ export const authenticate = async function(req, res) {
 			.sign(JWT_KEY);
 		return res.status(200).json({ "token": jwt });
 	} catch (error) {
-		return res.status(500).send('Error during authentication: ' + error.message);
+		return res.status(500).json({ message: 'Error during authentication: ' + error.message });
 	}
 }
 
@@ -83,7 +89,7 @@ export const get_user = async function(req, res) {
 		}
 		return res.status(200).json(user);
 	} catch (error) {
-		return res.status(404).json({ message: error.message });
+		return res.status(500).json({ message: error.message });
 	}
 }
 
@@ -105,7 +111,7 @@ export const create_user = async function(req, res) {
 		await User.create(user);
 		return res.status(201).json({ message: 'User created successfully' });
 	} catch (error) {
-		res.status(400).json({ message: error.message });
+		return res.status(500).json({ message: error.message });
 	}
 }
 
@@ -118,6 +124,6 @@ export const delete_user = async function(req, res) {
 		}
 		return res.status(200).json({ message: 'User deleted successfully' });
 	} catch (error) {
-		return res.status(400).json({ message: error.message });
+		return res.status(500).json({ message: error.message });
 	}
 }
