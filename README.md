@@ -2,19 +2,20 @@
 Project for Distributed System course
 
 ## 🐳 Commands
+`./restart.sh`
 
 ### Start the application
-
+`./start.sh`
+or
 `docker compose build`
-
 `docker compose up -d`
 
 
 ### Stop the application
+`./stop.sh`
+or
 `docker compose stop` (just stop containers)
-
 `docker compose down` (stop containers and remove them and the networks)
-
 `docker compose down --rmi all` (stop containers and remove containers and images)
 
 ## 🚀 Git Flow
@@ -31,3 +32,6 @@ This project uses **Git Flow** with the default settings.
 - `hotfix/*`: urgent fixes in production (e.g. `hotfix/fix-crash`)
 - `support/*`: maintenance of legacy versions
 - `bugfix/*`: minor bug fixes
+
+## 🧪 Test
+`docker exec -it railsync-backend-1 npm test`

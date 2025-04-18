@@ -93,6 +93,19 @@ export const get_user = async function(req, res) {
 	}
 }
 
+export const get_user_by_username = async function(req, res) {
+	try {
+		const username = req.params.username;
+		const user = await User.findOne({ username: username }, '-password').exec();
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		return res.status(200).json(user);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+}
+
 export const create_user = async function(req, res) {
 	try {
 		const user = req.body;

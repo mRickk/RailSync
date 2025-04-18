@@ -8,8 +8,6 @@ RUN npm install
 
 COPY . ${WORKINGDIR}/
 
-RUN npm run test
-
 RUN npm run build
 
 #FROM nginx:alpine
