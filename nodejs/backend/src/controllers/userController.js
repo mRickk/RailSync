@@ -10,7 +10,7 @@ const AUDIENCE = process.env.JWT_AUDIENCE || "audience";
 
 export const get_all_users = async function(req, res) {
 	try {
-		const users = await User.find({}); //'-_id -__v' Per escludere dei campi dall'output
+		const users = await User.find({}, '-password'); //'-_id -__v' Per escludere dei campi dall'output
 		return res.json(users);
 	} catch (err) {
 		return res.status(500).json({ message: err });
@@ -23,7 +23,14 @@ export const update_user = async function(req, res) {
 		const user = req.body;
 		const updatedUser = {};
 
-		if (user.username) updatedUser.username = user.username;
+		if (user.username)  {
+			const isUsernameAlreadyPresent = await User.findOne({ username: user.username }).exec();
+
+			if (isUsernameAlreadyPresent) {
+				return res.status(409).json({ message: "Username already exists" });
+			}
+			updatedUser.username = user.username;
+		}
 		if (user.password) updatedUser.password = await hash(user.password);
 		if (user.first_name) updatedUser.first_name = user.first_name;
 		if (user.last_name) updatedUser.last_name = user.last_name;
@@ -62,11 +69,12 @@ export const authenticate = async function(req, res) {
 		if (!user || !await verify(user.password, password)) {
 			return res.status(401).json({ message: "Invalid credentials" });
 		}
+		const userWithoutPassword = user.toObject();
+		delete userWithoutPassword.password;
 
-		token.is_admin = user.is_admin;
-		token.username = user.username;
-		token.profile = user;
-		token.profile.password = undefined;
+		token.is_admin = userWithoutPassword.is_admin;
+		token.username = userWithoutPassword.username;
+		token.profile = userWithoutPassword;
 		const jwt = await new SignJWT(token) //Token encoding
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
@@ -83,7 +91,7 @@ export const authenticate = async function(req, res) {
 export const get_user = async function(req, res) {
 	try {
 		const id = req.params.id;
-		const user = await User.findOne({ _id: id }).select('-password').exec();
+		const user = await User.findOne({ _id: id }, "-password").exec();
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
@@ -121,8 +129,11 @@ export const create_user = async function(req, res) {
 			return res.status(409).json({ message: "Username already exists" });
 		}
 
-		await User.create(user);
-		return res.status(201).json({ message: 'User created successfully' });
+		const createdUser = await User.create(user);
+		const userWithoutPassword = createdUser.toObject();
+		delete userWithoutPassword.password;
+
+		return res.status(201).json(userWithoutPassword);
 	} catch (error) {
 		return res.status(500).json({ message: error.message });
 	}
