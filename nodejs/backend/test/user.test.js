@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../index.js';
+import app from '../app.js';
 import mongoose from 'mongoose';
 
 const user_url = '/api/users/';
@@ -86,8 +86,9 @@ describe('User API', () => {
   it('should delete a user', async () => {
     const createRes = await createNewUser();
     const userId = createRes.body._id;
+    console.log(userId);
     const deleteRes = await request(app).delete(user_url + userId);
-
+    console.log(deleteRes);
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
