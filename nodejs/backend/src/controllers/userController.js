@@ -1,7 +1,7 @@
 import User from '../models/userModel.js';
 import { hash, verify } from '@node-rs/argon2';
-import { createSecretKey } from 'crypto';
-import { SignJWT } from 'jose';
+import createSecretKey from 'crypto';
+import SignJWT from 'jose';
 
 const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const JWT_KEY = createSecretKey(process.env.JWT_KEY || "secret_key");
@@ -10,7 +10,7 @@ const AUDIENCE = process.env.JWT_AUDIENCE || "audience";
 
 export const get_all_users = async function(req, res) {
 	try {
-		const users = await User.find({}, '-_id -__v');
+		const users = await User.find({}); //'-_id -__v' Per escludere dei campi dall'output
 		res.json(users);
 	} catch (err) {
 		res.status(500).send(err);
@@ -29,20 +29,22 @@ export const update_user = async function(req, res) {
 		if (user.last_name) updatedUser.last_name = user.last_name;
 		if (user.is_admin) updatedUser.is_admin = user.is_admin;
 
-		if (Object.keys(updatedUser).length > 0) {
-			const result = await User.updateOne({ _id: id }, updatedUser);
-			if (!result || result.matchedCount === 0) {
-				res.status(404).json({ message: "User not found" });
-			} else if (result.modifiedCount === 0) {
-				res.status(200).json({ message: "No changes were made" });
-			} else {
-				res.status(200).json({ message: "User updated successfully" });
-			}
-		} else {
-			res.status(400).json({ message: 'No fields to update are given' });
+		if (Object.keys(updatedUser).length === 0) {
+			return res.status(400).json({ message: 'No fields to update are given' });
 		}
+
+		const result = await User.updateOne({ _id: id }, updatedUser);
+		if (!result || result.matchedCount === 0) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		if (result.modifiedCount === 0) {
+			return res.status(200).json({ message: "No changes were made" });
+		}
+
+		return res.status(200).json({ message: "User updated successfully" });
 	} catch (error) {
-		res.status(404).json({ message: error.message });
+		return res.status(404).json({ message: error.message });
 	}
 }
 
@@ -52,23 +54,23 @@ export const authenticate = async function(req, res) {
 		const token = {};
 		const user = await User.findOne({ username: username }).exec();
 		if (!user || !await verify(user.data.password, password)) {
-			res.status(401).send("Invalid credentials");
-		} else {
-			token.is_admin = user.is_admin;
-			token.username = user.username;
-			token.profile = user;
-			token.profile.password = undefined;
-			const jwt = await new SignJWT(token) //Token encoding
-				.setProtectedHeader({ alg: 'HS256' })
-				.setIssuedAt()
-				.setIssuer(ISSUER)
-				.setAudience(AUDIENCE)
-				.setExpirationTime(TOKEN_EXPIRY)
-				.sign(JWT_KEY);
-			res.status(200).json({ "token": jwt });
+			return res.status(401).send("Invalid credentials");
 		}
+
+		token.is_admin = user.is_admin;
+		token.username = user.username;
+		token.profile = user;
+		token.profile.password = undefined;
+		const jwt = await new SignJWT(token) //Token encoding
+			.setProtectedHeader({ alg: 'HS256' })
+			.setIssuedAt()
+			.setIssuer(ISSUER)
+			.setAudience(AUDIENCE)
+			.setExpirationTime(TOKEN_EXPIRY)
+			.sign(JWT_KEY);
+		return res.status(200).json({ "token": jwt });
 	} catch (error) {
-		res.status(500).send('Error during authentication: ' + error.message);
+		return res.status(500).send('Error during authentication: ' + error.message);
 	}
 }
 
@@ -76,9 +78,12 @@ export const get_user = async function(req, res) {
 	try {
 		const id = req.params.id;
 		const user = await User.findOne({ _id: id }).select('-password').exec();
-		res.status(200).json(user);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		return res.status(200).json(user);
 	} catch (error) {
-		res.status(404).json({ message: error.message });
+		return res.status(404).json({ message: error.message });
 	}
 }
 
@@ -89,16 +94,16 @@ export const create_user = async function(req, res) {
 
 		const isUsernameAlreadyPresent = await User.findOne({ username: req.body.username }).exec();
 		const isEmailAlreadyPresent = await User.findOne({ email: req.body.email }).exec();
-		if (!isUsernameAlreadyPresent && !isEmailAlreadyPresent) {
-			await User.create(user);
-			res.status(201).json({ message: 'User created successfully' });
+
+		if (isEmailAlreadyPresent) {
+			return res.status(409).json({ message: "Email already exists" });
 		}
-		else if (isEmailAlreadyPresent) {
-			res.status(409).json({ message: "Email already exists" });
+		if (isUsernameAlreadyPresent) {
+			return res.status(409).json({ message: "Username already exists" });
 		}
-		else {
-			res.status(409).json({ message: "Username already exists" });
-		}
+
+		await User.create(user);
+		return res.status(201).json({ message: 'User created successfully' });
 	} catch (error) {
 		res.status(400).json({ message: error.message });
 	}
@@ -108,12 +113,11 @@ export const delete_user = async function(req, res) {
 	try {
 		const id = req.params.id;
 		const user = await User.findOneAndDelete({ _id: id }, null);
-		if (user) {
-			res.status(200).json({ message: 'User deleted successfully' });
-		} else {
-			res.status(404).json({ message: "User not found" });
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
 		}
+		return res.status(200).json({ message: 'User deleted successfully' });
 	} catch (error) {
-		res.status(400).json({ message: error.message });
+		return res.status(400).json({ message: error.message });
 	}
 }
