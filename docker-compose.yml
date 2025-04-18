@@ -1,34 +1,36 @@
 
 services:
-#  frontend:
-#    image: frontend
-#    build:
-#      context: ./nodejs/frontend
-#      dockerfile: Dockerfile
-#    restart: unless-stopped
-#    depends_on:
-#      - backend
-#    networks:
-#      - outer
-#      - inner
+  frontend:
+    image: frontend
+    build:
+      context: ./nodejs/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 5173:5173
+    depends_on:
+      - backend
+    networks:
+      - outer
+      - inner
 
   backend:
-      image: backend
-      build:
-        context: ./nodejs/backend
-        dockerfile: Dockerfile
-      restart: unless-stopped
-      environment:
-        MONGO_HOST: mongodb
-        MONGO_PORT: 27017
-        DB_URI: mongodb://mongodb:27017/dbrs
-      depends_on:
-        - mongodb
-      ports:
-        - 3000:3000
-      networks:
-        - inner
-        - outer #TODO: Remove
+    image: backend
+    build:
+      context: ./nodejs/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      DB_URI: mongodb://mongodb:27017/dbrs
+    depends_on:
+      - mongodb
+    ports:
+      - 3000:3000
+    networks:
+      - inner
+      - outer #TODO: Remove
 
   # first service to start
   mongodb:
