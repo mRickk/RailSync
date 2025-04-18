@@ -1,7 +1,7 @@
 import User from '../models/userModel.js';
 import { hash, verify } from '@node-rs/argon2';
-import createSecretKey from 'crypto';
-import SignJWT from 'jose';
+import { createSecretKey } from 'crypto';
+import { SignJWT } from 'jose';
 
 const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const JWT_KEY = createSecretKey(process.env.JWT_KEY || "secret_key");
