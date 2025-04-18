@@ -18,9 +18,9 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  const res = await request(app).get(user_url + 'username/' + default_username);
   try {
-    user_id = res.body._id;
+    const res = await request(app).get(user_url + 'username/' + default_username);
+    let user_id = res.body._id;
     await request(app).delete(user_url + user_id); 
   } catch (err) {}
 });
@@ -87,9 +87,10 @@ describe('User API', () => {
   it('should delete a user', async () => {
     const createRes = await createNewUser();
     const userId = createRes.body._id;
+    console.log(createRes.body.message);
     console.log(userId);
     const deleteRes = await request(app).delete(user_url + userId);
-    console.log(deleteRes);
+    console.log(deleteRes.body.message);
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
