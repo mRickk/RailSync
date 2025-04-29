@@ -4,35 +4,16 @@ import { ref } from 'vue';
 import Input from '@/components/Input.vue';
 import FormContainer from '@/components/FormContainer.vue';
 import FormContainerItem from '@/components/FormContainerItem.vue';
+import { PASSWORD_MIN_LENGTH } from '@/utils/constants.js';
+import { authenticate } from '@/utils/auth.js';
 
 const username = ref<string>('');
 const password = ref<string>('');
 const loginInProgress = ref(false);
-const loginError = ref<string | null>(null); 
-const PASSWORD_MIN_LENGTH = 1;
+const loginError = ref<string | null>(null);
 
 const validateUsername = (value: string) => value.trim().length > 0;
 const validatePassword = (value: string) => value.trim().length >= PASSWORD_MIN_LENGTH;
-
-async function authenticate(username: string, password: string): Promise<string | null> {
-  try {
-    const response = await fetch('http://localhost:3000/api/users/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Invalid credentials');
-    }
-
-    const data = await response.json();
-      return data.token; // Return the JWT token
-  } catch (error) {
-    loginError.value = 'Authentication failed. Please check your credentials.' + error.message; //TODO: remove error message
-    return null;
-  }
-}
 
 async function login() {
   if (loginInProgress.value) return;
@@ -70,12 +51,12 @@ async function login() {
       <form @submit.prevent="login" class="form">
         <div class="input-group">
           <Input
-            :dont-autocapitalize="true"
-            v-model="username"
-            type="text"
-            id="username"
-            :validation-function="validateUsername"
-            :error-message="'(Username is required)'"
+              :dont-autocapitalize="true"
+              v-model="username"
+              type="text"
+              id="username"
+              :validation-function="validateUsername"
+              :error-message="'(Username is required)'"
           >
             Username
           </Input>
@@ -83,11 +64,11 @@ async function login() {
 
         <div class="input-group">
           <Input
-            v-model="password"
-            type="password"
-            id="password"
-            :validation-function="validatePassword"
-            :error-message="`(Password must be at least ${PASSWORD_MIN_LENGTH} characters long)`"
+              v-model="password"
+              type="password"
+              id="password"
+              :validation-function="validatePassword"
+              :error-message="`(Password must be at least ${PASSWORD_MIN_LENGTH} characters long)`"
           >
             Password
           </Input>
@@ -100,9 +81,14 @@ async function login() {
           Login
         </button>
       </form>
+
+      <div class="text-center mt-3">
+        <p>Don't have an account? <router-link to="/signup" class="link-primary">Sign up</router-link></p>
+      </div>
     </FormContainerItem>
   </FormContainer>
 </template>
+
 
 <style scoped>
 .form {
