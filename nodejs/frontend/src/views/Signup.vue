@@ -17,6 +17,10 @@ const signupError = ref<string | null>(null);
 
 const validateNotEmpty = (value: string) => value.trim().length > 0;
 const validatePassword = (value: string) => value.trim().length >= PASSWORD_MIN_LENGTH;
+const validateEmail = (value: string) => {
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(value.trim());
+};
 
 async function signup() {
   if (signupInProgress.value) return;
@@ -38,20 +42,17 @@ async function signup() {
     });
 
     if (!response.ok) {
-      throw new Error('Signup failed');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Unknown error');
     }
 
     const token = await authenticate(username.value, password.value);
 
-    if (token) {
-      localStorage.setItem('authToken', token);
-      router.push({ path: '/home' });
-    } else {
-      loginError.value = 'Invalid username or password.';
-    }
+    localStorage.setItem('authToken', token);
+    router.push({ path: '/home' });
 
   } catch (error) {
-    signupError.value = 'Signup failed. ' + (error as Error).message;
+    signupError.value = 'Signup failed: ' + (error as Error).message;
   } finally {
     signupInProgress.value = false;
   }
@@ -59,9 +60,9 @@ async function signup() {
 </script>
 
 <template>
-  <h2 class="text-center">Sign Up</h2>
   <FormContainer>
     <FormContainerItem>
+      <h2 class="text-center">Sign Up</h2>
       <div v-if="signupError" class="alert alert-danger" role="alert">
         <div class="error-message">
           {{ signupError }}
@@ -82,7 +83,7 @@ async function signup() {
         </div>
 
         <div class="input-group">
-          <Input v-model="email" type="email" id="email" :validation-function="validateNotEmpty" :error-message="'(Email is required)'">
+          <Input v-model="email" type="email" id="email" :validation-function="validateEmail" :error-message="'(Email is required)'">
             Email
           </Input>
         </div>

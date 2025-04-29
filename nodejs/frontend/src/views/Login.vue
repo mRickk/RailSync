@@ -24,14 +24,11 @@ async function login() {
   try {
     const token = await authenticate(username.value, password.value);
 
-    if (token) {
-      localStorage.setItem('authToken', token);
-      router.push({ path: '/home' });
-    } else {
-      loginError.value = 'Invalid username or password.';
-    }
+    localStorage.setItem('authToken', token);
+    router.push({ path: '/home' });
+
   } catch (error) {
-    loginError.value = 'An unexpected error occurred. Please try again later.' + error.message; //TODO: remove error message
+    loginError.value = 'Login failed: ' + (error as Error).message; //TODO: remove error message
   } finally {
     loginInProgress.value = false;
   }
@@ -39,9 +36,9 @@ async function login() {
 </script>
 
 <template>
-  <h2 class="text-center">Login</h2>
   <FormContainer>
     <FormContainerItem>
+      <h2 class="text-center">Login</h2>
       <div v-if="loginError" class="alert alert-danger" role="alert">
         <div class="error-message">
           {{ loginError }}
