@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
 
-const user_url = '/api/users/';
+export const user_url = '/api/users/';
 const default_username = 'testuser';
 
 beforeAll(async () => {
@@ -25,7 +25,7 @@ beforeEach(async () => {
   } catch (err) {}
 });
 
-const createNewUser = async (
+export const createNewUser = async (
   username = 'testuser',
   password = 'securepassword',
   email = 'test@example.com',
@@ -87,10 +87,7 @@ describe('User API', () => {
   it('should delete a user', async () => {
     const createRes = await createNewUser();
     const userId = createRes.body._id;
-    console.log(createRes.body.message);
-    console.log(userId);
     const deleteRes = await request(app).delete(user_url + userId);
-    console.log(deleteRes.body.message);
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
