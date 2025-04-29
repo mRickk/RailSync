@@ -9,14 +9,14 @@ const username = ref<string>('');
 const password = ref<string>('');
 const loginInProgress = ref(false);
 const loginError = ref<string | null>(null); 
-const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MIN_LENGTH = 1;
 
 const validateUsername = (value: string) => value.trim().length > 0;
 const validatePassword = (value: string) => value.trim().length >= PASSWORD_MIN_LENGTH;
 
 async function authenticate(username: string, password: string): Promise<string | null> {
   try {
-    const response = await fetch('/api/users/auth', {
+    const response = await fetch('http://localhost:3000/api/users/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),

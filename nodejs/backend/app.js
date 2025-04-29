@@ -10,7 +10,12 @@ const mongoUrl = 'mongodb://mongodb:27017/dbrs';
 
 const app = express();
 
-app.use(cors()); // Allows cross-origin requests
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    credentials: true,
+};
+
+app.use(cors(corsOptions)); // Allows cross-origin requests
 // Importing parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
