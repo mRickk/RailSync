@@ -11,7 +11,6 @@ import {
 	delete_user
 } from '../controllers/userController.js';
 
-// These routes will be prefixed with /users or similar in the main app
 router.get('/', get_all_users);
 router.get('/:id', get_user);
 router.get('/username/:username', get_user_by_username);
