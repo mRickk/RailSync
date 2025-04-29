@@ -8,13 +8,11 @@ import FormContainerItem from '@/components/FormContainerItem.vue';
 const username = ref<string>('');
 const password = ref<string>('');
 const loginInProgress = ref(false);
+const loginError = ref<string | null>(null); 
 const PASSWORD_MIN_LENGTH = 8;
 
 const validateUsername = (value: string) => value.trim().length > 0;
 const validatePassword = (value: string) => value.trim().length >= PASSWORD_MIN_LENGTH;
-
-const notifyError = () =>
-  console.error('Login failed. Please check your credentials.');
 
 async function authenticate(username: string, password: string): Promise<string | null> {
   try {
@@ -31,7 +29,7 @@ async function authenticate(username: string, password: string): Promise<string 
     const data = await response.json();
     return data.token; // Return the JWT token
   } catch (error) {
-    console.error('Authentication failed:', error);
+    loginError.value = 'Authentication failed. Please check your credentials.' + error.message; //TODO: remove error message
     return null;
   }
 }
@@ -40,6 +38,7 @@ async function login() {
   if (loginInProgress.value) return;
 
   loginInProgress.value = true;
+  loginError.value = null;
 
   try {
     const token = await authenticate(username.value, password.value);
@@ -48,10 +47,10 @@ async function login() {
       localStorage.setItem('authToken', token);
       router.push({ path: '/' });
     } else {
-      notifyError();
+      loginError.value = 'Invalid username or password.';
     }
   } catch (error) {
-    notifyError();
+    loginError.value = 'An unexpected error occurred. Please try again later.' + error.message; //TODO: remove error message
   } finally {
     loginInProgress.value = false;
   }
@@ -62,6 +61,11 @@ async function login() {
   <h2 class="text-center">Login</h2>
   <FormContainer>
     <FormContainerItem>
+      <div v-if="loginError" class="alert alert-danger" role="alert">
+        <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+          {{ loginError }}
+        </div>
+      </div>
       <form @submit.prevent="login" class="d-flex flex-column justify-content-center">
         <Input
           :dont-autocapitalize="true"
@@ -79,7 +83,7 @@ async function login() {
           type="password"
           id="password"
           :validation-function="validatePassword"
-          :error-message="'Password must be at least 6 characters long'"
+          :error-message="`Password must be at least ${PASSWORD_MIN_LENGTH} characters long`"
         >
           Password
         </Input>
