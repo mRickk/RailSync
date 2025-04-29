@@ -42,7 +42,7 @@ const fieldValid = computed(() => {
 
         <!-- Error message for invalid input -->
         <div v-if="!fieldValid && props.errorMessage" class="invalid-feedback">
-            {{ props.errorMessage }}
+            <small class="text-danger ms-2">{{ props.errorMessage }}</small>
         </div>
     </div>
 </template>
