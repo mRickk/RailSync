@@ -27,7 +27,7 @@ async function authenticate(username: string, password: string): Promise<string 
     }
 
     const data = await response.json();
-    return data.token; // Return the JWT token
+      return data.token; // Return the JWT token
   } catch (error) {
     loginError.value = 'Authentication failed. Please check your credentials.' + error.message; //TODO: remove error message
     return null;
@@ -45,7 +45,7 @@ async function login() {
 
     if (token) {
       localStorage.setItem('authToken', token);
-      router.push({ path: '/' });
+      router.push({ path: '/home' });
     } else {
       loginError.value = 'Invalid username or password.';
     }
