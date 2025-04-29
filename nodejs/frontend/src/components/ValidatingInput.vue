@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     validationFunction: (value: string) => boolean,
@@ -9,13 +9,15 @@ const props = defineProps<{
     dontAutocapitalize?: boolean,
 }>();
 
-const model = defineModel<string>(); // For the input value
-const validationModel = defineModel<boolean>("valid"); // For the validation status
+const model = defineModel<string>();
+const validationModel = defineModel<boolean>("valid");
+
+const touched = ref(false);
 
 // Computed property to determine if the field is valid
 const fieldValid = computed(() => {
-    const isValid = props.validationFunction(model?.value || ""); // Fallback to an empty string
-    validationModel.value = isValid; // Update the validation model
+    const isValid = props.validationFunction(model?.value || "");
+    validationModel.value = isValid;
     return isValid;
 });
 </script>
@@ -38,10 +40,11 @@ const fieldValid = computed(() => {
             :id="id" 
             v-model="model" 
             :autocapitalize="dontAutocapitalize ? 'none' : 'yes'"
+            @blur="touched = true"
         />
 
         <!-- Error message for invalid input -->
-        <div v-if="!fieldValid && props.errorMessage" class="invalid-feedback">
+        <div v-if="touched && !fieldValid && props.errorMessage" class="invalid-feedback">
             <small class="text-danger ms-2">{{ props.errorMessage }}</small>
         </div>
     </div>
