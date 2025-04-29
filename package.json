@@ -1,0 +1,14 @@
+{
+  "name": "rail-sync",
+  "version": "1.0.0",
+  "license": "ISC",
+  "author": "",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

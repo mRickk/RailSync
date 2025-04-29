@@ -1,0 +1,175 @@
+<script lang="ts" setup>
+import router from '@/router';
+import { ref } from 'vue';
+import Input from '@/components/Input.vue';
+import FormContainer from '@/components/FormContainer.vue';
+import FormContainerItem from '@/components/FormContainerItem.vue';
+
+const username = ref<string>('');
+const password = ref<string>('');
+const loginInProgress = ref(false);
+const loginError = ref<string | null>(null); 
+const PASSWORD_MIN_LENGTH = 1;
+
+const validateUsername = (value: string) => value.trim().length > 0;
+const validatePassword = (value: string) => value.trim().length >= PASSWORD_MIN_LENGTH;
+
+async function authenticate(username: string, password: string): Promise<string | null> {
+  try {
+    const response = await fetch('http://localhost:3000/api/users/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Invalid credentials');
+    }
+
+    const data = await response.json();
+      return data.token; // Return the JWT token
+  } catch (error) {
+    loginError.value = 'Authentication failed. Please check your credentials.' + error.message; //TODO: remove error message
+    return null;
+  }
+}
+
+async function login() {
+  if (loginInProgress.value) return;
+
+  loginInProgress.value = true;
+  loginError.value = null;
+
+  try {
+    const token = await authenticate(username.value, password.value);
+
+    if (token) {
+      localStorage.setItem('authToken', token);
+      router.push({ path: '/home' });
+    } else {
+      loginError.value = 'Invalid username or password.';
+    }
+  } catch (error) {
+    loginError.value = 'An unexpected error occurred. Please try again later.' + error.message; //TODO: remove error message
+  } finally {
+    loginInProgress.value = false;
+  }
+}
+</script>
+
+<template>
+  <h2 class="text-center">Login</h2>
+  <FormContainer>
+    <FormContainerItem>
+      <div v-if="loginError" class="alert alert-danger" role="alert">
+        <div class="error-message">
+          {{ loginError }}
+        </div>
+      </div>
+
+      <form @submit.prevent="login" class="form">
+        <div class="input-group">
+          <Input
+            :dont-autocapitalize="true"
+            v-model="username"
+            type="text"
+            id="username"
+            :validation-function="validateUsername"
+            :error-message="'(Username is required)'"
+          >
+            Username
+          </Input>
+        </div>
+
+        <div class="input-group">
+          <Input
+            v-model="password"
+            type="password"
+            id="password"
+            :validation-function="validatePassword"
+            :error-message="`(Password must be at least ${PASSWORD_MIN_LENGTH} characters long)`"
+          >
+            Password
+          </Input>
+        </div>
+
+        <button :disabled="loginInProgress" class="btn btn-primary btn-lg mx-auto" type="submit">
+          <div v-if="loginInProgress" class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          Login
+        </button>
+      </form>
+    </FormContainerItem>
+  </FormContainer>
+</template>
+
+<style scoped>
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 400px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.spinner-border {
+  margin-right: 0.5rem;
+}
+</style>
