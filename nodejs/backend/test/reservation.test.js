@@ -82,6 +82,8 @@ describe('Reservation API', () => {
     expect(res.statusCode).toEqual(200);
     expect(size(res.body)).toEqual(3);
     expect(res.body[0].solution_id).toEqual(default_sol_id);
+    
+    await request(app).delete(user_url + userRes.body._id);
   });
 
   it('should delete a user', async () => {
