@@ -35,7 +35,7 @@ var ReservationSchema = new Schema({
         required: false
     },
     price_amount: {
-        type: String,
+        type: Number,
         required: false
     },
     reservation_date: {

@@ -1,13 +1,13 @@
 import Reservation from '../models/reservationModel.js';
 
-export const get_all_reservations = async function(req, res) {
+export const get_user_reservations = async function(req, res) {
     try {
         const user = req.body
         const reservations_id = user.reservations;
         const reservations = await Reservation.find({})
             .where('_id')
             .in(reservations_id);
-        return res.json(reservations);
+        return res.status(200).json(reservations);
     } catch (err) {
         return res.status(500).json({ message: err });
     }

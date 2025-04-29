@@ -151,3 +151,17 @@ export const delete_user = async function(req, res) {
 		return res.status(500).json({ message: error.message });
 	}
 }
+
+export const add_reservation = async function(req, res) {
+	try {
+		const id = req.params.id;
+		const reservation = req.body.reservation_id;
+		const user = await User.findOneAndUpdate({ _id: id }, { $push: { reservations: reservation } }, { new: true });
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		return res.status(200).json({ message: 'Reservation added successfully' });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+}
