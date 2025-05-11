@@ -1,5 +1,5 @@
 import { Router } from 'express';
-const router = Router();
+import { requireAuth, requireAdminOrSameUserId, requireAdmin } from '../util/authMiddleware.js';
 
 import {
 	get_all_users,
@@ -12,13 +12,20 @@ import {
 	add_reservation
 } from '../controllers/userController.js';
 
-router.get('/', get_all_users);
-router.get('/:id', get_user);
-router.get('/username/:username', get_user_by_username);
-router.post('/auth', authenticate);//JSON data
-router.put("/:id", update_user);//JSON data
-router.put("/reservation/:id", add_reservation);
-router.post("/", create_user);//JSON data
-router.delete("/:id", delete_user);
+const router = Router();
+
+//Open routes
+router.post('/auth', authenticate); //JSON payload
+router.post("/", create_user); //JSON payload
+
+//Protected routes
+router.get('/:id', requireAuth, requireAdminOrSameUserId, get_user);
+router.put("/:id", requireAuth, requireAdminOrSameUserId, update_user); //JSON payload
+router.delete("/:id", requireAuth, requireAdminOrSameUserId, delete_user);
+router.put("/reservation/:id", requireAuth, requireAdminOrSameUserId, add_reservation); //JSON payload
+
+//Protected routes for admin
+router.get('/username/:username', requireAuth, requireAdmin, get_user_by_username);
+router.get('/', requireAuth, requireAdmin, get_all_users);
 
 export default router;

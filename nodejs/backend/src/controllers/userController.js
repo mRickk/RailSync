@@ -1,12 +1,7 @@
 import User from '../models/userModel.js';
 import { hash, verify } from '@node-rs/argon2';
-import { createSecretKey } from 'crypto';
 import { SignJWT } from 'jose';
-
-const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '24h';
-const JWT_KEY = createSecretKey(process.env.JWT_KEY || "secret_key");
-const ISSUER = process.env.JWT_ISSUER || "issuer";
-const AUDIENCE = process.env.JWT_AUDIENCE || "audience";
+import { TOKEN_EXPIRY, JWT_KEY, ISSUER, AUDIENCE } from '../util/constants.js';
 
 export const get_all_users = async function(req, res) {
 	try {
@@ -72,9 +67,13 @@ export const authenticate = async function(req, res) {
 		const userWithoutPassword = user.toObject();
 		delete userWithoutPassword.password;
 
-		token.is_admin = userWithoutPassword.is_admin;
+		token.id = userWithoutPassword._id.toString();
 		token.username = userWithoutPassword.username;
-		token.profile = userWithoutPassword;
+		token.email = userWithoutPassword.email;
+		token.first_name = userWithoutPassword.first_name;
+		token.last_name = userWithoutPassword.last_name;
+		token.is_admin = userWithoutPassword.is_admin;
+		
 		const jwt = await new SignJWT(token) //Token encoding
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()

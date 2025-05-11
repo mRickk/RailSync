@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
-import { user_url, createNewUser } from './user.test.js';
+import { user_url, createNewUser, getUserToken } from './user.test.js';
 
 const reservation_url = '/api/reservations/';
 const default_sol_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
@@ -75,15 +75,18 @@ describe('Reservation API', () => {
     for (let i = 0; i < 3; i++) {
       await request(app)
         .post(user_url + 'reservation/' + userRes.body._id)
+        .set('Authorization', 'Bearer ' + await getUserToken())
         .send({ reservation_id: last_reservation_id });
     }
     const res = await request(app).get(reservation_url).send(userRes.body);
 
     expect(res.statusCode).toEqual(200);
-    expect(size(res.body)).toEqual(3);
+    expect(res.body.size).toEqual(3);
     expect(res.body[0].solution_id).toEqual(default_sol_id);
     
-    await request(app).delete(user_url + userRes.body._id);
+    await request(app)
+      .delete(user_url + userRes.body._id)
+      .set('Authorization', 'Bearer ' + await getUserToken());
   });
 
   it('should delete a user', async () => {
