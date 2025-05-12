@@ -68,12 +68,37 @@ describe('User API', () => {
   });
 
   it('should authenticate an existing user', async () => {
+    var res = await request(app)
+    .post(user_url + 'auth')
+    .send({
+      password: 'securepassword'
+    });
+
+    expect(res.statusCode).toEqual(400);
+
+    var res = await request(app)
+    .post(user_url + 'auth')
+    .send({
+      username: 'testuser'
+    });
+
+    expect(res.statusCode).toEqual(400);
+
+    var res = await request(app)
+    .post(user_url + 'auth')
+    .send({
+      username: 'testuser',
+      password: 'securepassword'
+    });
+
+    expect(res.statusCode).toEqual(401);
+
     await createNewUser();
-    const res = await request(app)
+    res = await request(app)
       .post(user_url + 'auth')
       .send({
         username: 'testuser',
-        password: 'securepassword',
+        password: 'securepassword'
       });
 
     expect(res.statusCode).toEqual(200);
@@ -109,7 +134,6 @@ describe('User API', () => {
     const deleteRes = await request(app)
       .delete(user_url + userId)
       .set('Authorization', 'Bearer ' + await getUserToken());
-    console.log(deleteRes.body);
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
@@ -125,7 +149,6 @@ describe('User API', () => {
         first_name: 'Updated',
         last_name: 'User',
       });
-    console.log(updateRes.body);
     expect(updateRes.statusCode).toEqual(200);
     expect(updateRes.body.message).toEqual('User updated successfully');
 

@@ -5,7 +5,7 @@ export const requireAuth = async (req, res, next) => {
 	try {
 		const authHeader = req.headers.authorization;
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
-			return res.status(401).json({ message: 'Missing or invalid Authorization header' });
+			return res.status(401).json({ message: 'Missing or invalid Authorization token' });
 		}
 		const token = authHeader.split(' ')[1];
 
@@ -16,14 +16,14 @@ export const requireAuth = async (req, res, next) => {
 		req.user = payload;
 		next();
 	} catch (err) {
-		return res.status(401).json({ message: 'Invalid or expired token' });
+		return res.status(401).json({ message: 'Missing or invalid Authorization token' });
 	}
 };
 
-export const requireAdminOrSameUserId = (req, res, next) => {
+export const requireAdminOrSelf = (req, res, next) => {
     try {
       const userIdFromToken = req.user.id;
-      const userIdToAccess = req.params.id;
+      const userIdToAccess = req.params.userId;
   
       const isAdmin = req.user.is_admin === true;
       const isSameUser = userIdFromToken === userIdToAccess;

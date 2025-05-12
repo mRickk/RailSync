@@ -1,6 +1,6 @@
 import Reservation from '../models/reservationModel.js';
 
-export const get_user_reservations = async function(req, res) {
+export const get_all_reservations = async function(req, res) {
     try {
         const user = req.body
         const reservations_id = user.reservations;
@@ -15,7 +15,7 @@ export const get_user_reservations = async function(req, res) {
 
 export const get_reservation = async function(req, res) {
     try {
-        const id = req.params.id;
+        const id = req.params.reservationId;
         const reservation = await Reservation.findOne({ _id: id }).exec();
         if (!reservation) {
             return res.status(404).json({ message: "Reservation not found" });
@@ -38,7 +38,7 @@ export const create_reservation = async function(req, res) {
 
 export const delete_reservation = async function(req, res) {
     try {
-        const id = req.params.id;
+        const id = req.params.reservationId;
         const reservation = await Reservation.findOneAndDelete({ _id: id }, null);
         if (!reservation) {
             return res.status(404).json({ message: "Reservation not found" });

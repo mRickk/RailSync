@@ -14,7 +14,7 @@ export const get_all_users = async function(req, res) {
 
 export const update_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = req.body;
 		const updatedUser = {};
 
@@ -89,7 +89,7 @@ export const authenticate = async function(req, res) {
 
 export const get_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = await User.findOne({ _id: id }, "-password").exec();
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
@@ -140,7 +140,7 @@ export const create_user = async function(req, res) {
 
 export const delete_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = await User.findOneAndDelete({ _id: id }, null);
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
@@ -153,7 +153,7 @@ export const delete_user = async function(req, res) {
 
 export const add_reservation = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const reservation = req.body.reservation_id;
 		const user = await User.findOneAndUpdate({ _id: id }, { $push: { reservations: reservation } }, { new: true });
 		if (!user) {

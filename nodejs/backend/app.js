@@ -1,5 +1,5 @@
-import users from "./src/routes/userRoutes.js";
-import reservations from "./src/routes/reservationRoutes.js";
+import usersRoutes from "./src/routes/userRoutes.js";
+import reservationsRoutes from "./src/routes/reservationRoutes.js";
 
 import express from 'express';
 import cors from 'cors';
@@ -45,8 +45,9 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
 };
 connectWithRetry();
 
-app.use('/api/users', users);
-app.use('/api/reservations', reservations);
+app.use('/api/users', usersRoutes);
+
+app.use('/api/reservations', reservationsRoutes);
 
 // Export the app for testing purposes
 export default app;
