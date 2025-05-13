@@ -33,7 +33,7 @@ afterAll(async () => {
 });
 
 export const createTestUser = async (
-  username = 'testuser',
+  username = default_username,
   password = 'securepassword',
   email = 'test@example.com',
   first_name = 'Test',
@@ -72,7 +72,7 @@ describe('User API', () => {
     const res = await request(app)
       .post(user_url + 'auth')
       .send({
-        username: 'testuser',
+        username: default_username,
         password: 'securepassword'
       });
 
@@ -84,7 +84,7 @@ describe('User API', () => {
     const res = await request(app)
     .post(user_url + 'auth')
     .send({
-      username: 'testuser',
+      username: default_username,
       password: 'securepassword'
     });
 
@@ -96,7 +96,7 @@ describe('User API', () => {
     const res = await request(app)
       .post(user_url + 'auth')
       .send({
-        username: 'testuser',
+        username: default_username,
         password: 'wrongpassword',
       });
     
@@ -116,7 +116,7 @@ describe('User API', () => {
     var res = await request(app)
     .post(user_url + 'auth')
     .send({
-      username: 'testuser'
+      username: default_username
     });
 
     expect(res.statusCode).toEqual(400);
@@ -132,7 +132,7 @@ describe('User API', () => {
     await createTestUser();
 
     const res = await createTestUser(
-      'testuser',
+      default_username,
       'anotherpassword',
       'unique@example.com',
       'Another',
@@ -166,7 +166,7 @@ describe('User API', () => {
       .set('Authorization', 'Bearer ' + await getAdminToken());
     
     expect(res.statusCode).toEqual(200);
-    expect(res.body[res.body.length - 1].username).toEqual('testuser');
+    expect(res.body[res.body.length - 1].username).toEqual(default_username);
   });
 
   it('should delete a user', async () => {

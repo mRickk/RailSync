@@ -1,11 +1,43 @@
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
-import { user_url, createNewUser, getUserToken } from './user.test.js';
+// import { getAdminToken } from './user.test.js';
+
+const user_url = '/api/users/';
+export const getAdminToken = async () => {
+    const res = await request(app)
+      .post(user_url + 'auth')
+      .send({
+        username: 'admin',
+        password: '1',
+      });
+  
+    return res.body.token;
+  }
+
+export const createTestUser = async (
+    username = "testuser",
+    password = 'securepassword',
+    email = 'test@example.com',
+    first_name = 'Test',
+    last_name = 'User'
+) => {
+return await request(app)
+    .post(user_url)
+    .send({
+    username: username,
+    password: password,
+    email: email,
+    first_name: first_name,
+    last_name: last_name,
+    });
+};
 
 const reservation_url = '/api/reservations/';
 const default_sol_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
 var last_reservation_id = '';
+var user_id = '';
+var token = '';
 
 beforeAll(async() => {
     const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
@@ -13,18 +45,31 @@ beforeAll(async() => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });
+    const userRes = await createTestUser();
+    user_id = userRes.body._id;
+    token = await getAdminToken();
+});
+
+afterEach(async() => {
+    try {
+        //Delete all reservations
+        const res = await request(app)
+            .get(reservation_url)
+            .set('Authorization', 'Bearer ' + token);
+        console.log("body: " + res.body);
+        for(const reservation of res.body) {
+            console.log(reservation._id);
+            console.log(user_id);
+            const deleteRes = await request(app)
+            .delete(reservation_url + reservation._id)
+            .set('Authorization', 'Bearer ' + token);
+            console.log(deleteRes.body);
+        }
+    } catch (err) {}
 });
 
 afterAll(async() => {
     await mongoose.disconnect();
-});
-
-beforeEach(async() => {
-    try {
-        await request(app).delete(reservation_url + last_reservation_id);
-    } catch (err) {
-        console.log('Error deleting reservation:', err.message);
-    }
 });
 
 const createNewReservation = async(
@@ -38,8 +83,9 @@ const createNewReservation = async(
     price_currency = '€',
     price_amount = 10.8,
 ) => {
-    return await request(app)
-        .post(reservation_url)
+    const res = await request(app)
+        .post(user_url + user_id + "/reservations")
+        .set('Authorization', 'Bearer ' + token)
         .send({
             solution_id: solution_id,
             origin: origin,
@@ -51,49 +97,50 @@ const createNewReservation = async(
             price_currency: price_currency,
             price_amount: price_amount,
         });
+    last_reservation_id = res.body._id;
+    return res;
 };
 
 describe('Reservation API', () => {
-    it('should create a new reservation', async() => {
-        const res = await createNewReservation();
-        last_reservation_id = res.body._id;
-        expect(res.statusCode).toEqual(201);
-        expect(res.body.solution_id).toEqual(default_sol_id);
+    it('initially should get 0 reservations', async() => {
+        const res = await request(app)
+            .get(reservation_url)
+            .set('Authorization', 'Bearer ' + token);
+
+        expect(res.statusCode).toEqual(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toEqual(0);
+    });
+
+    it('should get all reservations', async() => {
+        await createNewReservation();
+        await createNewReservation();
+
+        const res = await request(app)
+            .get(reservation_url)
+            .set('Authorization', 'Bearer ' + token);
+        console.log(res.body);
+        expect(res.statusCode).toEqual(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toEqual(2);
     });
 
     it('shoud get a reservation by id', async() => {
-        last_reservation_id = (await createNewReservation()).body._id;
-        const res = await request(app).get(reservation_url + last_reservation_id);
-
+        await createNewReservation();
+        const res = await request(app)
+            .get(reservation_url + last_reservation_id)
+            .set('Authorization', 'Bearer ' + token);
+        console.log(res.body);
         expect(res.statusCode).toEqual(200);
         expect(res.body._id).toEqual(last_reservation_id);
     });
 
-    it('should fetch user reservations', async() => {
-        last_reservation_id = (await createNewReservation()).body._id;
-        const userRes = await createNewUser();
-        for (let i = 0; i < 3; i++) {
-            await request(app)
-                .put(user_url + 'reservation/' + userRes.body._id)
-                .set('Authorization', 'Bearer ' + await getUserToken())
-                .send({ reservation_id: last_reservation_id });
-        }
-        const res = await request(app)
-            .get(user_url + userRes.body._id)
-            .set('Authorization', 'Bearer ' + await getUserToken());
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body.reservations.length).toEqual(3);
-        // expect(res.body.reservations[0]).toEqual(default_sol_id);
-
-        await request(app)
-            .delete(user_url + userRes.body._id)
-            .set('Authorization', 'Bearer ' + await getUserToken());
-    });
-
-    it('should delete a user', async() => {
-        last_reservation_id = (await createNewReservation()).body._id;
-        const deleteRes = await request(app).delete(reservation_url + last_reservation_id);
+    it('should delete a reservation by id', async() => {
+        await createNewReservation();
+        const deleteRes = await request(app)
+            .delete(reservation_url + last_reservation_id)
+            .set('Authorization', 'Bearer ' + token);
+        console.log(res.body);
         expect(deleteRes.statusCode).toEqual(200);
         expect(deleteRes.body.message).toEqual('Reservation deleted successfully');
     });

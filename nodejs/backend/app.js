@@ -46,7 +46,6 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
 connectWithRetry();
 
 app.use('/api/users', usersRoutes);
-
 app.use('/api/reservations', reservationsRoutes);
 
 // Export the app for testing purposes

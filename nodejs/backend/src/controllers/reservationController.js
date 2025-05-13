@@ -1,23 +1,27 @@
 import Reservation from '../models/reservationModel.js';
 import User from '../models/userModel.js';
 
-export const get_all_reservations = async function(req, res) {
-    try {
-        const user = req.body
-        const reservations_id = user.reservations;
-        const reservations = await Reservation.find({})
-            .where('_id')
-            .in(reservations_id);
-        return res.status(200).json(reservations);
-    } catch (err) {
-        return res.status(500).json({ message: err });
-    }
+export const search_reservations = async function(req, res) {
+	try {
+		const query = {};
+
+		if (req.query.origin) query.origin = req.query.origin;
+        if (req.query.destination) query.destination = req.query.destination;
+        if (req.query.status) query.status = req.query.status;
+
+		const reservations = await Reservation.find(query).exec();
+
+		return res.status(200).json(reservations);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
 }
 
 export const get_reservation = async function(req, res) {
     try {
         const id = req.params.reservationId;
-        const reservation = await Reservation.findOne({ _id: id }).exec();
+        const reservation = await Reservation.findById(id).exec();
+        
         if (!reservation) {
             return res.status(404).json({ message: "Reservation not found" });
         }
@@ -26,7 +30,6 @@ export const get_reservation = async function(req, res) {
         return res.status(500).json({ message: error.message });
     }
 }
-
 
 export const create_reservation = async function(req, res) {
 	try {
@@ -49,14 +52,15 @@ export const create_reservation = async function(req, res) {
 	}
 };
 
-
 export const delete_reservation = async function(req, res) {
     try {
         const id = req.params.reservationId;
         const reservation = await Reservation.findOneAndDelete({ _id: id }, null);
+
         if (!reservation) {
             return res.status(404).json({ message: "Reservation not found" });
         }
+        
         return res.status(200).json({ message: 'Reservation deleted successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
