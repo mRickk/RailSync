@@ -1,14 +1,24 @@
 import User from '../models/userModel.js';
+
 import { hash, verify } from '@node-rs/argon2';
 import { SignJWT } from 'jose';
 import { TOKEN_EXPIRY, JWT_KEY, ISSUER, AUDIENCE } from '../util/constants.js';
 
-export const get_all_users = async function(req, res) {
+export const search_users = async function(req, res) {
 	try {
-		const users = await User.find({}, '-password'); //'-_id -__v' Per escludere dei campi dall'output
-		return res.json(users);
-	} catch (err) {
-		return res.status(500).json({ message: err });
+		const query = {};
+
+		if (req.query.username) query.username = req.query.username;
+		if (req.query.email) query.email = req.query.email;
+		if (req.query.first_name) query.first_name = req.query.first_name;
+		if (req.query.last_name) query.last_name = req.query.last_name;
+		if (req.query.is_admin !== undefined) query.is_admin = req.query.is_admin === 'true';
+
+		const users = await User.find(query, '-password').exec();
+
+		return res.status(200).json(users);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
 	}
 }
 
@@ -100,22 +110,10 @@ export const get_user = async function(req, res) {
 	}
 }
 
-export const get_user_by_username = async function(req, res) {
-	try {
-		const username = req.params.username;
-		const user = await User.findOne({ username: username }, '-password').exec();
-		if (!user) {
-			return res.status(404).json({ message: "User not found" });
-		}
-		return res.status(200).json(user);
-	} catch (error) {
-		return res.status(500).json({ message: error.message });
-	}
-}
-
 export const create_user = async function(req, res) {
 	try {
 		const user = req.body;
+		user.is_admin = false;
 		user.password = await hash(user.password); //TODO: check se da mettere nel fronted
 
 		const isUsernameAlreadyPresent = await User.findOne({ username: req.body.username }).exec();

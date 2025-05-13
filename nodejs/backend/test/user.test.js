@@ -14,18 +14,25 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  const res = await request(app)
+  .get(user_url + '?username=' + default_username)
+  .set('Authorization', 'Bearer ' + await getAdminToken());
+  let user_id = res.body[0]._id;
+  await request(app)
+    .delete(user_url + user_id)
+    .set('Authorization', 'Bearer ' + await getAdminToken()); 
   await mongoose.disconnect();
 });
 
 beforeEach(async () => {
   try {
     const res = await request(app)
-      .get(user_url + 'username/' + default_username)
-      .set('Authorization', 'Bearer ' + await getUserToken());
-    let user_id = res.body._id;
+      .get(user_url + '?username=' + default_username)
+      .set('Authorization', 'Bearer ' + await getAdminToken());
+    let user_id = res.body[0]._id;
     await request(app)
       .delete(user_url + user_id)
-      .set('Authorization', 'Bearer ' + await getUserToken()); 
+      .set('Authorization', 'Bearer ' + await getAdminToken()); 
   } catch (err) {}
 });
 
@@ -34,8 +41,7 @@ export const createNewUser = async (
   password = 'securepassword',
   email = 'test@example.com',
   first_name = 'Test',
-  last_name = 'User',
-  is_admin = true
+  last_name = 'User'
 ) => {
   return await request(app)
     .post(user_url)
@@ -45,16 +51,15 @@ export const createNewUser = async (
       email: email,
       first_name: first_name,
       last_name: last_name,
-      is_admin: is_admin,
     });
 };
 
-export const getUserToken = async () => {
+export const getAdminToken = async () => {
   const res = await request(app)
     .post(user_url + 'auth')
     .send({
-      username: 'testuser',
-      password: 'securepassword',
+      username: 'admin',
+      password: '1',
     });
 
   return res.body.token;
@@ -122,7 +127,7 @@ describe('User API', () => {
     await createNewUser();
     const res = await request(app)
       .get(user_url)
-      .set('Authorization', 'Bearer ' + await getUserToken());
+      .set('Authorization', 'Bearer ' + await getAdminToken());
     
     expect(res.statusCode).toEqual(200);
     expect(res.body[res.body.length - 1].username).toEqual('testuser');
@@ -133,7 +138,7 @@ describe('User API', () => {
     const userId = createRes.body._id;
     const deleteRes = await request(app)
       .delete(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getUserToken());
+      .set('Authorization', 'Bearer ' + await getAdminToken());
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
@@ -143,8 +148,8 @@ describe('User API', () => {
     const userId = createRes.body._id;
 
     const updateRes = await request(app)
-      .put(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getUserToken())
+      .patch(user_url + userId)
+      .set('Authorization', 'Bearer ' + await getAdminToken())
       .send({
         first_name: 'Updated',
         last_name: 'User',
@@ -154,7 +159,7 @@ describe('User API', () => {
 
     const fetchRes = await request(app)
       .get(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getUserToken());
+      .set('Authorization', 'Bearer ' + await getAdminToken());
     expect(fetchRes.statusCode).toEqual(200);
     expect(fetchRes.body.first_name).toEqual('Updated');
     expect(fetchRes.body.last_name).toEqual('User');

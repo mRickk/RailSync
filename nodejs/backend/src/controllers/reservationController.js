@@ -1,4 +1,5 @@
 import Reservation from '../models/reservationModel.js';
+import User from '../models/userModel.js';
 
 export const get_all_reservations = async function(req, res) {
     try {
@@ -26,15 +27,28 @@ export const get_reservation = async function(req, res) {
     }
 }
 
+
 export const create_reservation = async function(req, res) {
-    try {
-        const reservation = req.body;
-        const createdReservation = await Reservation.create(reservation);
-        return res.status(201).json(createdReservation);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-}
+	try {
+		const userId = req.params.userId;
+
+		const user = await User.findById(userId).exec();
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		const reservationData = req.body;
+		const createdReservation = await Reservation.create(reservationData);
+
+		user.reservations.push(createdReservation._id);
+		await user.save();
+
+		return res.status(201).json(createdReservation);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
 
 export const delete_reservation = async function(req, res) {
     try {
@@ -46,5 +60,25 @@ export const delete_reservation = async function(req, res) {
         return res.status(200).json({ message: 'Reservation deleted successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
+    }
+}
+
+export const get_all_user_reservations = async function(req, res) {
+    try {
+        const userId = req.params.userId;
+        const user = await User.findById(userId).exec();
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+        const reservationsId = user.reservations;
+
+		const reservations = await Reservation.find()
+			.where('_id')
+			.in(reservationsId)
+			.exec();
+            
+        return res.status(200).json(reservations);
+    } catch (err) {
+        return res.status(500).json({ message: err });
     }
 }
