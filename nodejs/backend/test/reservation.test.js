@@ -4,6 +4,12 @@ import mongoose from 'mongoose';
 // import { getAdminToken } from './user.test.js';
 
 const user_url = '/api/users/';
+const reservation_url = '/api/reservations/';
+const default_sol_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
+var last_reservation_id = '';
+var user_id = '';
+var token = '';
+
 export const getAdminToken = async () => {
     const res = await request(app)
       .post(user_url + 'auth')
@@ -33,11 +39,14 @@ return await request(app)
     });
 };
 
-const reservation_url = '/api/reservations/';
-const default_sol_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
-var last_reservation_id = '';
-var user_id = '';
-var token = '';
+export const deleteTestUser = async () => {
+    try {
+        await request(app)
+            .delete(user_url + user_id)
+            .set('Authorization', 'Bearer ' + token);
+    } catch (err) {
+    }
+  };
 
 beforeAll(async() => {
     const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
@@ -65,6 +74,7 @@ afterEach(async() => {
 });
 
 afterAll(async() => {
+    await deleteTestUser();
     await mongoose.disconnect();
 });
 
