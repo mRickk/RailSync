@@ -1,6 +1,6 @@
 import { jwtVerify } from 'jose';
 import { JWT_KEY, ISSUER, AUDIENCE } from '../util/constants.js';
-import Reservation from '../models/reservationModel.js';
+import User from '../models/userModel.js';
 
 export const requireAuth = async (req, res, next) => {
 	try {

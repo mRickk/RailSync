@@ -60,6 +60,11 @@ export const delete_reservation = async function(req, res) {
         if (!reservation) {
             return res.status(404).json({ message: "Reservation not found" });
         }
+
+        await User.updateOne(
+            { reservations: id },
+            { $pull: { reservations: id } }
+        );
         
         return res.status(200).json({ message: 'Reservation deleted successfully' });
     } catch (error) {

@@ -56,14 +56,10 @@ afterEach(async() => {
         const res = await request(app)
             .get(reservation_url)
             .set('Authorization', 'Bearer ' + token);
-        console.log("body: " + res.body);
         for(const reservation of res.body) {
-            console.log(reservation._id);
-            console.log(user_id);
             const deleteRes = await request(app)
-            .delete(reservation_url + reservation._id)
-            .set('Authorization', 'Bearer ' + token);
-            console.log(deleteRes.body);
+                .delete(reservation_url + reservation._id)
+                .set('Authorization', 'Bearer ' + token);
         }
     } catch (err) {}
 });
@@ -119,7 +115,6 @@ describe('Reservation API', () => {
         const res = await request(app)
             .get(reservation_url)
             .set('Authorization', 'Bearer ' + token);
-        console.log(res.body);
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBe(true);
         expect(res.body.length).toEqual(2);
@@ -130,7 +125,6 @@ describe('Reservation API', () => {
         const res = await request(app)
             .get(reservation_url + last_reservation_id)
             .set('Authorization', 'Bearer ' + token);
-        console.log(res.body);
         expect(res.statusCode).toEqual(200);
         expect(res.body._id).toEqual(last_reservation_id);
     });
@@ -140,7 +134,6 @@ describe('Reservation API', () => {
         const deleteRes = await request(app)
             .delete(reservation_url + last_reservation_id)
             .set('Authorization', 'Bearer ' + token);
-        console.log(res.body);
         expect(deleteRes.statusCode).toEqual(200);
         expect(deleteRes.body.message).toEqual('Reservation deleted successfully');
     });
