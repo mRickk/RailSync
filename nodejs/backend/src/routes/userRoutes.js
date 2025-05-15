@@ -1,24 +1,32 @@
 import { Router } from 'express';
-const router = Router();
+import { requireAuth, requireAdminOrSelf, requireAdmin } from '../util/authMiddleware.js';
 
 import {
-	get_all_users,
+	search_users,
 	get_user,
-	get_user_by_username,
 	authenticate,
 	update_user,
 	create_user,
-	delete_user,
-	add_reservation
+	delete_user
 } from '../controllers/userController.js';
 
-router.get('/', get_all_users);
-router.get('/:id', get_user);
-router.get('/username/:username', get_user_by_username);
-router.post('/auth', authenticate);//JSON data
-router.put("/:id", update_user);//JSON data
-router.put("/reservation/:id", add_reservation);
-router.post("/", create_user);//JSON data
-router.delete("/:id", delete_user);
+import {
+	get_all_user_reservations,
+	create_reservation
+} from '../controllers/reservationController.js';
+
+const router = Router();
+
+router.post('/auth', authenticate); //JSON username, password
+
+router.post("/", create_user); //JSON User
+router.get('/', requireAuth, requireAdmin, search_users);
+
+router.get('/:userId', requireAuth, requireAdminOrSelf, get_user);
+router.patch("/:userId", requireAuth, requireAdminOrSelf, update_user); //JSON User
+router.delete("/:userId", requireAuth, requireAdminOrSelf, delete_user);
+
+router.get('/:userId/reservations', requireAuth, requireAdminOrSelf, get_all_user_reservations);
+router.post('/:userId/reservations', requireAuth, requireAdminOrSelf, create_reservation); //JSON Reservation
 
 export default router;

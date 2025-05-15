@@ -1,25 +1,30 @@
 import User from '../models/userModel.js';
+
 import { hash, verify } from '@node-rs/argon2';
-import { createSecretKey } from 'crypto';
 import { SignJWT } from 'jose';
+import { TOKEN_EXPIRY, JWT_KEY, ISSUER, AUDIENCE } from '../util/constants.js';
 
-const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '24h';
-const JWT_KEY = createSecretKey(process.env.JWT_KEY || "secret_key");
-const ISSUER = process.env.JWT_ISSUER || "issuer";
-const AUDIENCE = process.env.JWT_AUDIENCE || "audience";
-
-export const get_all_users = async function(req, res) {
+export const search_users = async function(req, res) {
 	try {
-		const users = await User.find({}, '-password'); //'-_id -__v' Per escludere dei campi dall'output
-		return res.json(users);
-	} catch (err) {
-		return res.status(500).json({ message: err });
+		const query = {};
+
+		if (req.query.username) query.username = req.query.username;
+		if (req.query.email) query.email = req.query.email;
+		if (req.query.first_name) query.first_name = req.query.first_name;
+		if (req.query.last_name) query.last_name = req.query.last_name;
+		if (req.query.is_admin !== undefined) query.is_admin = req.query.is_admin === 'true';
+
+		const users = await User.find(query, '-password').exec();
+
+		return res.status(200).json(users);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
 	}
 }
 
 export const update_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = req.body;
 		const updatedUser = {};
 
@@ -34,7 +39,7 @@ export const update_user = async function(req, res) {
 		if (user.password) updatedUser.password = await hash(user.password);
 		if (user.first_name) updatedUser.first_name = user.first_name;
 		if (user.last_name) updatedUser.last_name = user.last_name;
-		if (user.is_admin) updatedUser.is_admin = user.is_admin;
+		if (user.hasOwnProperty('is_admin')) updatedUser.is_admin = user.is_admin;
 
 		if (Object.keys(updatedUser).length === 0) {
 			return res.status(400).json({ message: 'No fields to update are given' });
@@ -72,9 +77,13 @@ export const authenticate = async function(req, res) {
 		const userWithoutPassword = user.toObject();
 		delete userWithoutPassword.password;
 
-		token.is_admin = userWithoutPassword.is_admin;
+		token.id = userWithoutPassword._id.toString();
 		token.username = userWithoutPassword.username;
-		token.profile = userWithoutPassword;
+		token.email = userWithoutPassword.email;
+		token.first_name = userWithoutPassword.first_name;
+		token.last_name = userWithoutPassword.last_name;
+		token.is_admin = userWithoutPassword.is_admin;
+		
 		const jwt = await new SignJWT(token) //Token encoding
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
@@ -90,21 +99,8 @@ export const authenticate = async function(req, res) {
 
 export const get_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = await User.findOne({ _id: id }, "-password").exec();
-		if (!user) {
-			return res.status(404).json({ message: "User not found" });
-		}
-		return res.status(200).json(user);
-	} catch (error) {
-		return res.status(500).json({ message: error.message });
-	}
-}
-
-export const get_user_by_username = async function(req, res) {
-	try {
-		const username = req.params.username;
-		const user = await User.findOne({ username: username }, '-password').exec();
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
@@ -117,6 +113,7 @@ export const get_user_by_username = async function(req, res) {
 export const create_user = async function(req, res) {
 	try {
 		const user = req.body;
+		user.is_admin = false;
 		user.password = await hash(user.password); //TODO: check se da mettere nel fronted
 
 		const isUsernameAlreadyPresent = await User.findOne({ username: req.body.username }).exec();
@@ -141,7 +138,7 @@ export const create_user = async function(req, res) {
 
 export const delete_user = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const user = await User.findOneAndDelete({ _id: id }, null);
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
@@ -154,7 +151,7 @@ export const delete_user = async function(req, res) {
 
 export const add_reservation = async function(req, res) {
 	try {
-		const id = req.params.id;
+		const id = req.params.userId;
 		const reservation = req.body.reservation_id;
 		const user = await User.findOneAndUpdate({ _id: id }, { $push: { reservations: reservation } }, { new: true });
 		if (!user) {
