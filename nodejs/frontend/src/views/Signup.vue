@@ -46,9 +46,7 @@ async function signup() {
       throw new Error(errorData.message || 'Unknown error');
     }
 
-    const token = await authenticate(username.value, password.value);
-
-    localStorage.setItem('authToken', token);
+    await authenticate(username.value, password.value);
     router.push({ path: '/home' });
 
   } catch (error) {
@@ -71,14 +69,8 @@ async function signup() {
 
       <form @submit.prevent="signup" class="form">
         <div class="input-group">
-          <Input v-model="firstName" type="text" id="first-name" :validation-function="validateNotEmpty" :error-message="'(First name is required)'">
-            First Name
-          </Input>
-        </div>
-
-        <div class="input-group">
-          <Input v-model="lastName" type="text" id="last-name" :validation-function="validateNotEmpty" :error-message="'(Last name is required)'">
-            Last Name
+          <Input v-model="username" type="text" id="username" :validation-function="validateNotEmpty" :error-message="'(Username is required)'">
+            Username
           </Input>
         </div>
 
@@ -87,10 +79,16 @@ async function signup() {
             Email
           </Input>
         </div>
+        
+        <div class="input-group">
+          <Input v-model="firstName" type="text" id="first-name" :validation-function="validateNotEmpty" :error-message="'(First name is required)'">
+            First Name
+          </Input>
+        </div>
 
         <div class="input-group">
-          <Input v-model="username" type="text" id="username" :validation-function="validateNotEmpty" :error-message="'(Username is required)'">
-            Username
+          <Input v-model="lastName" type="text" id="last-name" :validation-function="validateNotEmpty" :error-message="'(Last name is required)'">
+            Last Name
           </Input>
         </div>
 
@@ -121,7 +119,7 @@ async function signup() {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
   max-width: 400px;
   margin: 0 auto;
   font-family: 'Inter', sans-serif;

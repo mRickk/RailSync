@@ -1,5 +1,6 @@
 import usersRoutes from "./src/routes/userRoutes.js";
 import reservationsRoutes from "./src/routes/reservationRoutes.js";
+import seedDatabase from "./src/util/seedDatabase.js";
 
 import express from 'express';
 import cors from 'cors';
@@ -30,7 +31,10 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
     mongoose.connect(mongoUrl, {
         connectTimeoutMS: 1000
     })
-        .then(() => console.log('MongoDB Connected'))
+        .then(async () => {
+            console.log('MongoDB Connected');
+            await seedDatabase();
+        })
         .catch((err) => {
             console.error(`MongoDB connection unsuccessful, retries left: ${retries}`, err);
             if (retries > 0) {

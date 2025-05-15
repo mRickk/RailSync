@@ -5,6 +5,10 @@ services:
     build:
       context: ./nodejs/frontend
       dockerfile: Dockerfile
+    volumes: #Aggiunto per permettere modifiche live alla view
+      - ./nodejs/frontend:/app
+      - /app/node_modules  # Previene conflitti tra node_modules host e container
+    command: ["npm", "run", "dev"]
     restart: unless-stopped
     ports:
       - 5173:5173
