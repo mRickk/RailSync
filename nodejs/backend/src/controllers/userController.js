@@ -91,7 +91,10 @@ export const authenticate = async function(req, res) {
 			.setAudience(AUDIENCE)
 			.setExpirationTime(TOKEN_EXPIRY)
 			.sign(JWT_KEY);
-		return res.status(200).json({ "token": jwt });
+		return res.status(200).json({ 
+			"token": jwt,
+			"id": userWithoutPassword._id.toString(),
+		});
 	} catch (error) {
 		return res.status(500).json({ message: 'Error during authentication: ' + error.message });
 	}
