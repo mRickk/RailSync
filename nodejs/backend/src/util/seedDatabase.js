@@ -20,7 +20,6 @@ const seedReservations = async () => {
       status: "Confirmed",
       price_currency: "EUR",
       price_amount: 49.99,
-      reservation_date: new Date("2025-05-10T12:00:00Z"),
     },
     {
       solution_id: "SOL002",
@@ -32,7 +31,6 @@ const seedReservations = async () => {
       status: "Pending",
       price_currency: "EUR",
       price_amount: 29.50,
-      reservation_date: new Date("2025-05-11T08:45:00Z"),
     },
   ];
 
