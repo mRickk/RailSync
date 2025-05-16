@@ -6,11 +6,6 @@ import { logout } from '@/utils/auth.js';
 <template>
   <div class="home-container">
     <h1>Benvenuto nella Home</h1>
-    <p>Sei autenticato.</p>
-
-    <button @click="logout" class="btn btn-primary btn-lg mx-auto">
-      Logout
-    </button>
   </div>
 </template>
 

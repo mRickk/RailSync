@@ -14,10 +14,12 @@ export async function authenticate(username, password) {
     }
 
     const data = await response.json();
-    return data.token;
+    localStorage.setItem('authToken', data.token);
+    localStorage.setItem('id', data.id);
 }
 
 export async function logout() {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('id');
     router.push('/login');
 }

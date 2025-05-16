@@ -12,6 +12,10 @@ export default defineConfig({
     server: {
         port: 5173,
         host: '0.0.0.0', //DOCKER
+        watch: {
+            usePolling: true,
+            interval: 100,
+          }
     },
     build: {
         outDir: 'dist',

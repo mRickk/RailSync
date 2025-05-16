@@ -22,9 +22,7 @@ async function login() {
   loginError.value = null;
 
   try {
-    const token = await authenticate(username.value, password.value);
-
-    localStorage.setItem('authToken', token);
+    await authenticate(username.value, password.value);
     router.push({ path: '/home' });
 
   } catch (error) {
@@ -91,7 +89,7 @@ async function login() {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
   max-width: 400px;
   margin: 0 auto;
   font-family: 'Inter', sans-serif;
