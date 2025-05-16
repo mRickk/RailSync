@@ -7,6 +7,7 @@ const props = defineProps<{
     type: string,
     id: string,
     dontAutocapitalize?: boolean,
+    disabled?: boolean,
 }>();
 
 const model = defineModel<string>();
@@ -40,6 +41,7 @@ const fieldValid = computed(() => {
             :id="id" 
             v-model="model" 
             :autocapitalize="dontAutocapitalize ? 'none' : 'yes'"
+            :disabled="props.disabled"
             @blur="touched = true"
         />
 

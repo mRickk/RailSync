@@ -3,6 +3,8 @@ import { JWT_KEY, ISSUER, AUDIENCE } from '../util/constants.js';
 import User from '../models/userModel.js';
 
 export const requireAuth = async (req, res, next) => {
+  if (req.method === 'OPTIONS') return next();// Verifica se il metodo è OPTIONS (preflight)
+
 	try {
 		const authHeader = req.headers.authorization;
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -14,7 +16,15 @@ export const requireAuth = async (req, res, next) => {
 			issuer: ISSUER,
 			audience: AUDIENCE
 		});
-		req.user = payload;
+    
+    const user = await User.findById(payload.id).select('-password').lean().exec();
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+		req.user = user;
+    req.user.id = req.user._id.toString();
+
 		next();
 	} catch (err) {
 		return res.status(401).json({ message: 'Missing or invalid Authorization token' });
@@ -22,21 +32,23 @@ export const requireAuth = async (req, res, next) => {
 };
 
 export const requireAdminOrSelf = (req, res, next) => {
-    try {
-      const userIdFromToken = req.user.id;
-      const userIdToAccess = req.params.userId;
-  
-      const isAdmin = req.user.is_admin === true;
-      const isSameUser = userIdFromToken === userIdToAccess;
-  
-      if (!isAdmin && !isSameUser) {
-        return res.status(403).json({ message: 'Access forbidden: You can not access this user' });
-      }
-  
-      next();
-    } catch (err) {
-      return res.status(500).json({ message: 'Error during authorization: ' + err.message });
+  if (req.method === 'OPTIONS') return next();// Verifica se il metodo è OPTIONS (preflight)
+    
+  try {
+    const userIdFromToken = req.user.id;
+    const userIdToAccess = req.params.userId;
+
+    const isAdmin = req.user.is_admin === true;
+    const isSameUser = userIdFromToken === userIdToAccess;
+
+    if (!isAdmin && !isSameUser) {
+      return res.status(403).json({ message: 'Access forbidden: You can not access this user' });
     }
+
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: 'Error during authorization: ' + err.message });
+  }
   };
   
 

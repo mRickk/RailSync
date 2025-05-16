@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { logout } from '@/utils/auth.js';
 
 </script>
 

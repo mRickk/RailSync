@@ -6,6 +6,7 @@ const props = defineProps<{
     id: string,
     dontAutocapitalize?: boolean,
     validationFunction?: (value: string) => boolean,
+    disabled?: boolean,
 }>();
 
 const defaultValidationFunction = (value: string) => true;
@@ -22,6 +23,7 @@ const model = defineModel<string>();
         :type="type" 
         :error-message="'Invalid input'"
         :validation-function="validationFunction" 
+        :disabled="disabled"
         v-model="model"
     >
         <slot></slot>

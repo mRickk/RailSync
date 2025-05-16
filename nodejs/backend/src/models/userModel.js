@@ -12,4 +12,4 @@ var UserSchema = new Schema({
     reservations: { type: [Schema.Types.ObjectId], ref: 'Reservation', default: [] }
 });
 
-export default  mongoose.model('User', UserSchema);
+export default mongoose.model('User', UserSchema);

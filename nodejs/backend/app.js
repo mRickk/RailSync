@@ -15,9 +15,12 @@ const app = express();
 const corsOptions = {
     origin: 'http://localhost:5173',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions)); // Allows cross-origin requests
+app.options('*', cors(corsOptions));
 // Importing parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -48,7 +51,7 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
         });
 };
 connectWithRetry();
-
+  
 app.use('/api/users', usersRoutes);
 app.use('/api/reservations', reservationsRoutes);
 
