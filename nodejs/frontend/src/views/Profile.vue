@@ -41,11 +41,43 @@
                 <input v-model="form.last_name" type="text" class="input" :disabled="!isEditing" /> -->
             </div>
 
+            <!-- Cambia password -->
+            <div v-if="isEditing">
+                <Input
+                    v-model="form.password"
+                    type="password"
+                    id="password"
+                    :validation-function="validatePassword"
+                    :error-message="'(Min. 6 caratteri)'"
+                    :required="false"
+                    :disabled="!isEditing"
+                >
+                New Password
+                </Input>
+                
+                <Input
+                    v-model="form.confirm_password"
+                    type="password"
+                    id="confirm-password"
+                    :validation-function="validateConfirmPassword"
+                    :error-message="'(Passwords do not match)'"
+                    :required="false"
+                    :disabled="!isEditing"
+                >
+                Confirm Password
+                </Input>
+            </div>
+
+
             <div class="pt-2">
+                <button v-if="isEditing" type="button" class="btn-primary w-full" @click="backButtonClick">
+                    Cancel
+                </button>
                 <button type="submit" class="btn-primary w-full" :disabled="loading">
-                    {{ isEditing ? (loading ? "Salvataggio..." : "Salva modifiche") : "Modifica" }}
+                    {{ isEditing ? (loading ? "Saving..." : "Save changes") : "Edit" }}
                 </button>
             </div>
+            
         </form>
 
         <p v-if="message" class="mt-4 text-green-600 text-center">{{ message }}</p>
@@ -57,6 +89,7 @@
 import Input from '@/components/Input.vue';
 import { reactive, ref, onMounted } from 'vue'
 import { getUser, updateUser } from '@/api/user.js'
+import { PASSWORD_MIN_LENGTH, API_BASE_URL } from '@/utils/constants.js';
 
 const validateUsername = (value) => value.trim().length > 0;
 const validateNotEmpty = (value) => value.trim().length > 0;
@@ -64,6 +97,18 @@ const validateEmail = (value) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(value.trim());
 };
+const validatePassword = (value) => value.trim().length === 0 || value.trim().length >= PASSWORD_MIN_LENGTH;
+
+const validateConfirmPassword = (value) => value === form.password;
+
+const form = reactive({
+    username: '',
+    email: '',
+    first_name: '',
+    last_name: '',
+    password: '',
+    confirm_password: ''
+})
 
 const originalForm = reactive({
     username: '',
@@ -72,19 +117,14 @@ const originalForm = reactive({
     last_name: '',
 })
 
-const form = reactive({
-    username: '',
-    email: '',
-    first_name: '',
-    last_name: '',
-})
 
 const isFormChanged = () => {
     return (
         form.username !== originalForm.username ||
         form.email !== originalForm.email ||
         form.first_name !== originalForm.first_name ||
-        form.last_name !== originalForm.last_name
+        form.last_name !== originalForm.last_name ||
+        form.password.trim().length !== 0
     )
 }
 
@@ -125,21 +165,48 @@ const handleButtonClick = async () => {
     loading.value = true
     message.value = ''
     error.value = ''
+
     try {
-        await updateUser({
+        if (form.password !== form.confirm_password) {
+            throw new Error("Passwords do not match.");
+        }
+
+        const payload = {
             username: form.username,
             email: form.email,
             first_name: form.first_name,
             last_name: form.last_name,
-        })
+        }
+
+        if (form.password.trim().length > 0) {
+            payload.password = form.password
+        }
+
+        await updateUser(payload)
         message.value = 'Profilo aggiornato con successo.'
+        isEditing.value = false
+        form.password = ''
+        form.confirm_password = ''
     } catch (err) {
         error.value = err.message
     } finally {
         fetchUser();
-        isEditing.value = false
         loading.value = false
     }
+}
+
+const backButtonClick = async () => {
+    if (!isEditing.value) {
+        return
+    }
+
+    isEditing.value = false
+    form.username = originalForm.username
+    form.email = originalForm.email
+    form.first_name = originalForm.first_name
+    form.last_name = originalForm.last_name
+    form.password = ''
+    form.confirm_password = ''
 }
 </script>
 

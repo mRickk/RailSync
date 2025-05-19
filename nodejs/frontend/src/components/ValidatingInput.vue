@@ -8,6 +8,7 @@ const props = defineProps<{
     id: string,
     dontAutocapitalize?: boolean,
     disabled?: boolean,
+    required?: boolean,
 }>();
 
 const model = defineModel<string>();
@@ -34,6 +35,8 @@ const fieldValid = computed(() => {
         <input 
             ref="input" 
             :aria-invalid="!fieldValid" 
+            :required="props.required !== false"
+            :aria-required="props.required !== false"
             required 
             aria-required="true"
             :class="`form-control ${model?.length > 0 && props.errorMessage.length > 0 ? (fieldValid ? 'is-valid' : 'is-invalid') : ''}`"
