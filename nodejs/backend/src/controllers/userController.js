@@ -28,7 +28,7 @@ export const update_user = async function(req, res) {
 		const user = req.body;
 		const updatedUser = {};
 
-		if (user.username)  {
+		if (user.username && user.username !== req.user.username)  {
 			const isUsernameAlreadyPresent = await User.findOne({ username: user.username }).exec();
 
 			if (isUsernameAlreadyPresent) {
@@ -36,10 +36,17 @@ export const update_user = async function(req, res) {
 			}
 			updatedUser.username = user.username;
 		}
+		if (user.email && user.email !== req.user.email) {
+			const isEmailAlreadyPresent = await User.findOne({ email: user.email }).exec();
+
+			if (isEmailAlreadyPresent) {
+				return res.status(409).json({ message: "Email already present in the database." });
+			}
+			updatedUser.email = user.email;
+		}
 		if (user.password) updatedUser.password = await hash(user.password);
-		if (user.first_name) updatedUser.first_name = user.first_name;
-		if (user.last_name) updatedUser.last_name = user.last_name;
-		if (user.hasOwnProperty('is_admin')) updatedUser.is_admin = user.is_admin;
+		if (user.first_name && user.first_name !== req.user.first_name) updatedUser.first_name = user.first_name;
+		if (user.last_name && user.last_name !== req.user.last_name) updatedUser.last_name = user.last_name;
 
 		if (Object.keys(updatedUser).length === 0) {
 			return res.status(400).json({ message: 'No fields to update are given' });
@@ -78,11 +85,12 @@ export const authenticate = async function(req, res) {
 		delete userWithoutPassword.password;
 
 		token.id = userWithoutPassword._id.toString();
-		token.username = userWithoutPassword.username;
-		token.email = userWithoutPassword.email;
-		token.first_name = userWithoutPassword.first_name;
-		token.last_name = userWithoutPassword.last_name;
-		token.is_admin = userWithoutPassword.is_admin;
+		//Rimosse le altre informazioni perchè soggette a variazione
+		// token.username = userWithoutPassword.username;
+		// token.email = userWithoutPassword.email;
+		// token.first_name = userWithoutPassword.first_name;
+		// token.last_name = userWithoutPassword.last_name;
+		// token.is_admin = userWithoutPassword.is_admin;
 		
 		const jwt = await new SignJWT(token) //Token encoding
 			.setProtectedHeader({ alg: 'HS256' })
