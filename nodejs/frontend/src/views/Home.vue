@@ -23,19 +23,23 @@
         </b-form-group>
       </div>
 
+      <!-- Data e orario di partenza -->
       <label for="departure-time" class="block font-semibold mt-3 mb-1">Departure Time</label>
       <Datepicker v-model="departureDate" class="w-full" />
 
     </div>
 
+    <!-- Pulsante di ricerca -->
     <b-button class="mt-4" variant="primary" @click="handleSearch" :disabled="loading">
       {{ loading ? 'Searching...' : 'Search' }}
     </b-button>
 
+    <!-- Errore -->
     <div v-if="error" class="mt-4 text-danger">
       {{ error }}
     </div>
 
+    <!-- Risultati -->
     <div v-if="results.length" class="mt-5 w-full max-w-md">
       <!-- <h2 class="text-xl font-semibold mb-2">Results:</h2> -->
       <ul class="list-group">
