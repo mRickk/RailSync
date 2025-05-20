@@ -1,5 +1,6 @@
 import usersRoutes from "./src/routes/userRoutes.js";
 import reservationsRoutes from "./src/routes/reservationRoutes.js";
+import stationsRoutes from "./src/routes/stationsRoutes.js";
 import seedDatabase from "./src/util/seedDatabase.js";
 
 import express from 'express';
@@ -54,6 +55,6 @@ connectWithRetry();
   
 app.use('/api/users', usersRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/stations', stationsRoutes);
 
-// Export the app for testing purposes
 export default app;
