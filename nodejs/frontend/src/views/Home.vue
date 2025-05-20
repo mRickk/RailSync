@@ -3,37 +3,39 @@
     <h1 class="text-2xl font-bold mb-4">Search Trains Solutions</h1>
 
     <div class="w-full max-w-2xl space-y-3">
-      <!-- Stazioni -->
-      <b-input-group>
-        <b-form-input
-          v-model="fromStation"
-          placeholder="Starting station"
-          aria-label="From station"
-        />
-        <b-form-input
-          v-model="toStation"
-          placeholder="Arriving station"
-          aria-label="To station"
-        />
-      </b-input-group>
+      <div class="d-flex flex-wrap gap-3">
+        <b-form-group label="From station" label-for="from-station" class="flex-fill">
+          <b-form-select
+            id="from-station"
+            v-model="fromStation"
+            :options="stationOptions"
+            placeholder="Select departure station"
+          />
+        </b-form-group>
 
-      <!-- Data e orario di partenza -->
+        <b-form-group label="To station" label-for="to-station" class="flex-fill">
+          <b-form-select
+            id="to-station"
+            v-model="toStation"
+            :options="stationOptions"
+            placeholder="Select arrival station"
+          />
+        </b-form-group>
+      </div>
+
       <label for="departure-time" class="block font-semibold mt-3 mb-1">Departure Time</label>
       <Datepicker v-model="departureDate" class="w-full" />
 
     </div>
 
-    <!-- Pulsante di ricerca -->
     <b-button class="mt-4" variant="primary" @click="handleSearch" :disabled="loading">
       {{ loading ? 'Searching...' : 'Search' }}
     </b-button>
 
-    <!-- Errore -->
     <div v-if="error" class="mt-4 text-danger">
       {{ error }}
     </div>
 
-    <!-- Risultati -->
     <div v-if="results.length" class="mt-5 w-full max-w-md">
       <!-- <h2 class="text-xl font-semibold mb-2">Results:</h2> -->
       <ul class="list-group">
@@ -62,7 +64,14 @@ export default {
       departureDate: new Date(),
       loading: false,
       error: '',
-      results: []
+      results: [],
+      stationOptions: [
+      { value: 'Milano Centrale', text: 'Milano Centrale' },
+      { value: 'Roma Termini', text: 'Roma Termini' },
+      { value: 'Napoli Centrale', text: 'Napoli Centrale' },
+      { value: 'Firenze SMN', text: 'Firenze Santa Maria Novella' },
+      { value: 'Torino Porta Nuova', text: 'Torino Porta Nuova' }
+    ]
     }
   },
   methods: {
