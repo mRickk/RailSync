@@ -53,6 +53,7 @@
 import { ref } from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { get_all_stations } from '@/api/stations.js'
 import { searchSolution } from '@/api/solutions.js'
 
 export default {
@@ -65,13 +66,20 @@ export default {
       loading: false,
       error: '',
       results: [],
-      stationOptions: [
-      { value: 'Milano Centrale', text: 'Milano Centrale' },
-      { value: 'Roma Termini', text: 'Roma Termini' },
-      { value: 'Napoli Centrale', text: 'Napoli Centrale' },
-      { value: 'Firenze SMN', text: 'Firenze Santa Maria Novella' },
-      { value: 'Torino Porta Nuova', text: 'Torino Porta Nuova' }
-    ]
+      stationOptions: []
+    }
+  },
+  async mounted() {
+    try {
+      const stations = await get_all_stations()
+      this.stationOptions = stations
+        .sort((a, b) => a.localeCompare(b))
+        .map(station => ({
+          value: station,
+          text: station
+        }))
+    } catch (e) {
+      this.error = 'Failed to load station list'
     }
   },
   methods: {
