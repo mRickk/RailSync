@@ -5,7 +5,6 @@ import Home from '@/views/Home.vue';
 import Signup from '@/views/Signup.vue';
 import Reservations from '@/views/Reservations.vue';
 import Profile from '@/views/Profile.vue';
-import Test from '@/views/Test.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
