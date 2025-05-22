@@ -1,34 +1,25 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
-import csv from 'csv-parser';
+import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
-export const get_all_stations = async function(req, res) {
-    try {
-        const results = [];
-
-        const csvPath = path.join(__dirname, '../data/stations.csv');
-
-        await new Promise((resolve, reject) => {
-            fs.createReadStream(csvPath)
-                .pipe(csv({ separator: ',' }))
-                .on('data', (data) => {
-                    if (data.id && data.long_name) {
-                        results.push({
-                            "id": data.id,
-                            "long_name": data.long_name
-                        });
-                    }
-                })
-                .on('end', resolve)
-                .on('error', reject);
-        });
-
-        return res.status(200).json(results);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
+export const get_all_stations = (req, res) => {
+    const filePath = path.join(__dirname, '..', 'data', 'stations.json');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        console.error('Errore nella lettura del file JSON:', err);
+        return res.status(500).json({ error: 'Errore nel server' });
+      }
+  
+      try {
+        const stations = JSON.parse(data);
+        res.json(stations);
+      } catch (parseErr) {
+        console.error('Errore nel parsing del JSON:', parseErr);
+        res.status(500).json({ error: 'Formato JSON non valido' });
+      }
+    });
+  };
