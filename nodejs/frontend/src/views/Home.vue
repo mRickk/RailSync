@@ -4,7 +4,7 @@
 
     <div class="w-full max-w-2xl space-y-3">
       <div class="d-flex flex-wrap gap-3">
-        <b-form-group label="From station" label-for="from-station" class="flex-fill"  style="min-width: 460px;">
+        <b-form-group label="From station" label-for="from-station" class="flex-fill"  style="min-width: 350px;">
           <b-form-select
             id="from-station"
             v-model="fromStation"
@@ -13,7 +13,7 @@
           />
         </b-form-group>
 
-        <b-form-group label="To station" label-for="to-station" class="flex-fill" style="min-width: 460px;">
+        <b-form-group label="To station" label-for="to-station" class="flex-fill" style="min-width: 350px;">
           <b-form-select
             id="to-station"
             v-model="toStation"
@@ -80,7 +80,7 @@ export default {
         .sort((a, b) => a.long_name.localeCompare(b.long_name))
         .map(station => ({
           value: station.id,
-          text: station.id + " - " + station.long_name
+          text: station.long_name
         }))
     } catch (e) {
       // this.error = 'Failed to load station list'
