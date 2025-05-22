@@ -7,7 +7,8 @@ export const get_solutions = async (req, res) => {
     const payload = {
         "departureLocationId": fromStationId,
         "arrivalLocationId": toStationId,
-        "departureTime": datetime
+        "departureTime": datetime,
+        "adults": 1,
     };
 
     try {

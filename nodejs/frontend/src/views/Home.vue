@@ -16,7 +16,7 @@
 
       <!-- Data e orario di partenza -->
       <label for="departure-time" class="block font-semibold mb-1">Departure Time</label>
-      <Datepicker v-model="departureDate" class="w-full" />
+      <Datepicker v-model="departureDate" class="w-full" :clearable="false" />
 
       <!-- Pulsante di ricerca -->
       <div class="d-flex flex-wrap gap-3">
