@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <h1 class="text-2xl font-bold mb-4">Search Trains Solutions</h1>
+    <h1 class="text-2xl font-bold mb-4">Search trains solutions for your next trip!</h1>
 
     <div class="w-full max-w-2xl space-y-3">
       <!-- Stazioni di partenza e arrivo -->
