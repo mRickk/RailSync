@@ -5,6 +5,7 @@ import Home from '@/views/Home.vue';
 import Signup from '@/views/Signup.vue';
 import Reservations from '@/views/Reservations.vue';
 import Profile from '@/views/Profile.vue';
+import Test from '@/views/Test.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -28,6 +29,7 @@ const routes = [
         component: Profile,
         meta: { requiresAuth: true }
     },
+    { path: '/test', name: "Test", component: Test },
 ];
 
 const router = createRouter({

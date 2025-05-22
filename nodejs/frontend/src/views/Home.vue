@@ -121,7 +121,7 @@ export default {
         const data = await searchSolution(
           this.fromStation,
           this.toStation,
-          this.departureDate
+          this.departureDate.toISOString()
         )
         this.results = data
       } catch (e) {
