@@ -6,41 +6,27 @@
       <!-- Stazioni di partenza e arrivo -->
       <div class="d-flex flex-wrap gap-3">
         <b-form-group label="From station" label-for="from-station" class="flex-fill"  style="min-width: 400px;">
-          <b-form-select
-            id="from-station"
-            v-model="fromStation"
-            :options="stationOptions"
-            placeholder="Select departure station"
-          />
+          <StationAutocomplete v-model="fromStation" />
         </b-form-group>
 
         <b-form-group label="To station" label-for="to-station" class="flex-fill" style="min-width: 400px;">
-          <b-form-select
-            id="to-station"
-            v-model="toStation"
-            :options="stationOptions"
-            placeholder="Select arrival station"
-          />
+          <StationAutocomplete v-model="toStation" />
         </b-form-group>
       </div>
 
       <!-- Data e orario di partenza -->
-      <label for="departure-time" class="block font-semibold mt-3 mb-1">Departure Time</label>
+      <label for="departure-time" class="block font-semibold mb-1">Departure Time</label>
       <Datepicker v-model="departureDate" class="w-full" />
 
       <!-- Pulsante di ricerca -->
       <div class="d-flex flex-wrap gap-3">
         <div class="flex-fill" style="min-width: 350px;">
-          <b-button class="mt-4 w-100" variant="primary" @click="handleSearch" :disabled="isLoadingStations">
+          <b-button class="mt-4 w-100" variant="primary" @click="handleSearch">
             {{ loadingSolutions ? 'Searching...' : 'Search' }}
           </b-button>
         </div>
       </div>
     
-    </div>
-
-    <div v-if="isLoadingStations" class="mt-4">
-      <b-spinner label="Loading stations..." />
     </div>
 
     <div v-if="error" class="mt-4 text-danger">
@@ -70,11 +56,12 @@
 <script>
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import { get_all_stations } from '@/api/stations.js'
+import { get_stations } from '@/api/stations.js'
 import { searchSolution } from '@/api/solutions.js'
+import StationAutocomplete from '@/components/StationAutocomplete.vue'
 
 export default {
-  components: { Datepicker },
+  components: { StationAutocomplete, Datepicker },
   data() {
     return {
       fromStation: '',
@@ -83,30 +70,9 @@ export default {
       loadingSolutions: false,
       error: '',
       results: [],
-      stationOptions: [],
-      isLoadingStations: true
     }
   },
-  mounted() {
-    this.fetchStations()
-  },
   methods: {
-    async fetchStations() {
-      this.isLoadingStations = true
-      try {
-        const stations = await get_all_stations()
-        this.stationOptions = stations
-          .sort((a, b) => a.long_name.localeCompare(b.long_name))
-          .map(station => ({
-            value: station.id,
-            text: station.long_name
-          }))
-      } catch (e) {
-        this.error = e.message
-      } finally {
-        this.isLoadingStations = false
-      }
-    },
     async handleSearch() {
       this.error = ''
       this.results = []

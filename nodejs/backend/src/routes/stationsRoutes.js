@@ -6,6 +6,6 @@ import {
 
 const router = Router();
 
-router.get('/', get_all_stations);
+router.get('/search', get_all_stations);
 
 export default router;
