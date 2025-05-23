@@ -1,18 +1,15 @@
 import { API_BASE_URL } from '@/utils/constants.js';
 
 export async function searchSolution(from, to, datetime) {
-    // API fittizia
-    return Promise.resolve([
-      { id: 1, departure: '08:00', arrival: '10:00', duration: '2h' },
-      { id: 2, departure: '09:30', arrival: '11:45', duration: '2h 15m' }
-    ])
 
-    var endpoint = `${API_BASE_URL}/stations/search`;
-    if (name) {
-        endpoint += `?name=${name}`
-    }
-    
-    const response = await fetch(endpoint, {
+    console.log("searchSolution", from, to, datetime);
+    const params = new URLSearchParams({
+        fromStationId: from,
+        toStationId: to,
+        datetime: datetime
+    }).toString();
+
+    const response = await fetch(`${API_BASE_URL}/solutions?${params}`, {
         method: 'GET',
         headers: { 
             'Content-Type': 'application/json'
@@ -25,5 +22,6 @@ export async function searchSolution(from, to, datetime) {
     }
 
     const data = await response.json();
+    console.log(data["searchId"])
     return data;
   }

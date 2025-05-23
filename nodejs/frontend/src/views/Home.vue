@@ -5,7 +5,7 @@
     <div class="w-full max-w-2xl space-y-3">
       <!-- Stazioni di partenza e arrivo -->
       <div class="d-flex flex-wrap gap-3">
-        <b-form-group label="From station" label-for="from-station" class="flex-fill"  style="min-width: 400px;">
+        <b-form-group label="From station" label-for="from-station" class="flex-fill" style="min-width: 400px;">
           <StationAutocomplete v-model="fromStation" />
         </b-form-group>
 
@@ -16,7 +16,8 @@
 
       <!-- Data e orario di partenza -->
       <label for="departure-time" class="block font-semibold mb-1">Departure Time</label>
-      <Datepicker v-model="departureDate" class="w-full" :clearable="false" />
+      <Datepicker v-model="departureDate" class="w-full" :clearable="false" :format="formatEuropeanDate"
+        :enable-time-picker="true" />
 
       <!-- Pulsante di ricerca -->
       <div class="d-flex flex-wrap gap-3">
@@ -26,7 +27,7 @@
           </b-button>
         </div>
       </div>
-    
+
     </div>
 
     <div v-if="error" class="mt-4 text-danger">
@@ -39,11 +40,27 @@
       <ul class="list-group">
         <li class="list-group-item flex justify-between items-center" v-for="result in results" :key="result.id">
           <div class="flex-grow">
-            <strong>Departure:</strong> {{ result.departure }},
-            <strong>Arrival:</strong> {{ result.arrival }},
+            <strong class="text-primary">
+              {{result.trains.map(train => train.denomination + ' ' + train.name).join(' / ')}}
+            </strong>
+          </div>
+          <div class="flex-grow">
+            <strong>Departure:</strong> {{ result.origin }} ({{ new Date(result.departureTime).toLocaleString() }})
+          </div>
+          <div class="flex-grow">
+            <strong>Arrival:</strong> {{ result.destination }} ({{ new Date(result.arrivalTime).toLocaleString() }})
+          </div>
+          <div class="flex-grow">
             <strong>Duration:</strong> {{ result.duration }}
           </div>
-          <router-link :to="`/booking/${result.id}`" class="btn btn-primary mt-2" >
+          <div class="flex-grow">
+            <strong>Cost:</strong>
+            {{ result.price ? result.price.amount + result.price.currency : 'N/A' }}
+          </div>
+          <router-link :to="`/booking/${result.id}`" class="btn btn-primary mt-2"
+            :class="{ disabled: result.status !== 'SALEABLE' }" :aria-disabled="result.status !== 'SALEABLE'"
+            :tabindex="result.status !== 'SALEABLE' ? -1 : 0"
+            @click.prevent="result.status !== 'SALEABLE' && $event.preventDefault()">
             Buy
           </router-link>
         </li>
@@ -59,6 +76,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import { get_stations } from '@/api/stations.js'
 import { searchSolution } from '@/api/solutions.js'
 import StationAutocomplete from '@/components/StationAutocomplete.vue'
+import { DateTime } from 'luxon'
 
 export default {
   components: { StationAutocomplete, Datepicker },
@@ -73,6 +91,13 @@ export default {
     }
   },
   methods: {
+    formatEuropeanDate(date) {
+      if (!date) return ''
+      return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    },
     async handleSearch() {
       this.error = ''
       this.results = []
@@ -84,12 +109,15 @@ export default {
 
       this.loadingSolutions = true
       try {
+        const isoLocal = DateTime.fromJSDate(this.departureDate).toISO()
         const data = await searchSolution(
           this.fromStation,
           this.toStation,
-          this.departureDate.toISOString()
+          isoLocal
         )
-        this.results = data
+        this.results = data["solutions"]
+          .map((res) => (res.solution))
+          // .filter((sol) => sol.status === "SALEABLE")
       } catch (e) {
         this.error = 'Error fetching train data'
       } finally {
