@@ -8,12 +8,12 @@ import {
 	update_user,
 	create_user,
 	delete_user
-} from '../controllers/userController.js';
+} from '../controllers/usersController.js';
 
 import {
 	get_all_user_reservations,
 	create_reservation
-} from '../controllers/reservationController.js';
+} from '../controllers/reservationsController.js';
 
 const router = Router();
 

@@ -1,6 +1,7 @@
-import usersRoutes from "./src/routes/userRoutes.js";
-import reservationsRoutes from "./src/routes/reservationRoutes.js";
+import usersRoutes from "./src/routes/usersRoutes.js";
+import reservationsRoutes from "./src/routes/reservationsRoutes.js";
 import stationsRoutes from "./src/routes/stationsRoutes.js";
+import solutionsRoutes from "./src/routes/solutionsRoutes.js";
 import seedDatabase from "./src/util/seedDatabase.js";
 
 import express from 'express';
@@ -56,5 +57,6 @@ connectWithRetry();
 app.use('/api/users', usersRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/stations', stationsRoutes);
+app.use('/api/solutions', solutionsRoutes);
 
 export default app;
