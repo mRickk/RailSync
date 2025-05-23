@@ -61,7 +61,6 @@ const seedUsers = async () => {
       password: "$argon2id$v=19$m=19456,t=2,p=1$IY/F7CpcU0qI0IR7N4Aj5Q$BBpFslCsmcLrMrTXhnAiEMcHx9+Yc2Z8Sk3lM07rV5c",
       first_name: "Riccardo",
       last_name: "Mazzi",
-      is_admin: false,
     },
     {
       username: "nicolas.amadori",
@@ -69,7 +68,6 @@ const seedUsers = async () => {
       password: "$argon2id$v=19$m=19456,t=2,p=1$uYk2gEZVa54+bL04G5L+hQ$AoAwh0Tn3ROWNSsPh3VLX0Ntmjyfyfe1jn+GXGfWPKs",
       first_name: "Nicolas",
       last_name: "Amadori",
-      is_admin: false,
     },
   ];
 
@@ -81,7 +79,7 @@ const seedDatabase = async () => {
   await seedUsers();
   const reservations = await seedReservations();
 
-  if (reservations.length > 0) {
+  if (reservations && reservations.length > 0) {
     const nicolas = await User.findOne({ username: "nicolas.amadori" });
     if (nicolas) {
       nicolas.reservations = reservations.map(r => r._id);
