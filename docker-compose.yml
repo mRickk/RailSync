@@ -1,27 +1,48 @@
 
 services:
-# second service to start
-  nodejsapp:
+  frontend:
+    image: frontend
     build:
-      context: ./nodejs
+      context: ./nodejs/frontend
       dockerfile: Dockerfile
-    image: nodejsapp
-    command: [ "nodejs", "index.js" ]
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    volumes: #Aggiunto per permettere modifiche live alla view
+      - ./nodejs/frontend:/app
+      - /app/node_modules  # Previene conflitti tra node_modules host e container
+    command: ["npm", "run", "dev"]
+    restart: unless-stopped
     ports:
-      - 3000:3000
+      - 5173:5173
+    depends_on:
+      - backend
     networks:
       - outer
       - inner
-# first service to start
+
+  backend:
+    image: backend
+    build:
+      context: ./nodejs/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      DB_URI: mongodb://mongodb:27017/dbrs
+    depends_on:
+      - mongodb
+    ports:
+      - 3000:3000
+    networks:
+      - inner
+      - outer #TODO: Remove
+
+  # first service to start
   mongodb:
     build:
       context: ./mongodb
       dockerfile: Dockerfile
     image: mymongo
-#command to be executed after execution initialized
+    #command to be executed after execution initialized
     command: [ "docker-entrypoint.sh", "mongod" ]
     restart: always
     healthcheck:
@@ -29,11 +50,24 @@ services:
         host=`hostname --ip-address || echo '127.0.0.1'`;
         mongo --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
       interval: 5s
-    ports: #TODO: Remove because only used for mongodb client for debug reasons
-     - 27017:27017 #TODO: Remove because only used for mongodb client for debug reasons
     networks:
       - inner
-      - outer #TODO: Remove because only used for mongodb client for debug reasons
+
+  #TODO: Comment out because only used for debug reasons
+  mongoexpress:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/dbrs
+    restart: always
+    ports:
+      - "8082:8081"
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+    networks:
+      - inner
+      - outer
 
 networks:
   inner:

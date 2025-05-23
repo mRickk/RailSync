@@ -1,18 +1,36 @@
-# RailSync
+# 🚉 RailSync
 Project for Distributed System course
 
-## Commands
+## 🐳 Commands
+`./restart.sh`
 
 ### Start the application
-
+`./start.sh`
+or
 `docker compose build`
-
 `docker compose up -d`
 
-
 ### Stop the application
+`./stop.sh`
+or
 `docker compose stop` (just stop containers)
-
 `docker compose down` (stop containers and remove them and the networks)
-
 `docker compose down --rmi all` (stop containers and remove containers and images)
+
+## 🧪 Test
+`docker exec -it railsync-backend-1 npm test`
+
+## 🚀 Git Flow
+
+This project uses **Git Flow** with the default settings.
+
+### Main branches:
+- `main`: contains production-ready code.
+- `develop`: contains development code for the next release.
+
+### Supporting branch types:
+- `feature/*`: new features (e.g. `feature/login-page`)
+- `release/*`: preparing a new release (e.g. `release/1.2.0`)
+- `hotfix/*`: urgent fixes in production (e.g. `hotfix/fix-crash`)
+- `support/*`: maintenance of legacy versions
+- `bugfix/*`: minor bug fixes
