@@ -5,6 +5,7 @@ import Home from '@/views/Home.vue';
 import Signup from '@/views/Signup.vue';
 import Reservations from '@/views/Reservations.vue';
 import Profile from '@/views/Profile.vue';
+import UserManagement from '@/views/UserManagement.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -26,6 +27,18 @@ const routes = [
         path: '/profile',
         name: "Profile",
         component: Profile,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile',
+        name: "Profile",
+        component: Profile,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/admin/users',
+        name: "UserManagement",
+        component: UserManagement,
         meta: { requiresAuth: true }
     },
 ];
