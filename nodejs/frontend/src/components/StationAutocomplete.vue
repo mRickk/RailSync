@@ -93,32 +93,51 @@ function selectSuggestion(station) {
 }
 
 function onBlur() {
-  if(justSelected) {
-    const match = filteredSuggestions.value.find(
-      s => s.displayName === query.value
-    )
+  query
+  const trimmed = query.value.trim()
+
+  // Input vuoto
+  if (trimmed === '') {
+    query.value = ''
+    emit('update:modelValue', '')
+    invalid.value = true
+    isOpen.value = false
+    previousDisplayName = null
+    return
+  }
+
+  const match = filteredSuggestions.value.find(
+    s => s.displayName === query.value
+  )
+  console.log(filteredSuggestions.value)
+  console.log("INIZIO")
+  console.log("value " + query.value)
+  console.log("justSelected " + justSelected)
+  console.log("match " + match)
+  if (justSelected) {
     if (!match) {
       query.value = ''
       invalid.value = true
       emit('update:modelValue', '')
     }
-    isOpen.value = false
   } else {
     justSelected = true
-    const match = filteredSuggestions.value.find(
-      s => s.displayName === query.value
-    )
     invalid.value = false
+
     if (!match) {
       query.value = previousDisplayName
     } else {
       previousDisplayName = query.value
       emit('update:modelValue', String(match.id))
     }
-    isOpen.value = false
   }
-
+  isOpen.value = false
+  console.log("FINE")
+  console.log("value " + query.value)
+  console.log("justSelected " + justSelected)
+  console.log("match " + match)
 }
+
 </script>
 
 <style scoped>
