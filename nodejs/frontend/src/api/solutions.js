@@ -24,4 +24,4 @@ export async function searchSolution(from, to, datetime) {
     const data = await response.json();
     console.log(data["searchId"])
     return data;
-  }
+}

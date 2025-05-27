@@ -88,7 +88,7 @@
 <script setup>
 import Input from '@/components/Input.vue';
 import { reactive, ref, onMounted } from 'vue'
-import { getUser, updateUser } from '@/api/user.js'
+import { getUser, updateUser } from '@/api/users.js'
 import { PASSWORD_MIN_LENGTH, API_BASE_URL } from '@/utils/constants.js';
 
 const validateUsername = (value) => value.trim().length > 0;

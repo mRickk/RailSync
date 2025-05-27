@@ -57,12 +57,12 @@
             <strong>Cost:</strong>
             {{ result.price ? result.price.amount + result.price.currency : 'N/A' }}
           </div>
-          <router-link :to="`/booking/${result.id}`" class="btn btn-primary mt-2"
-            :class="{ disabled: result.status !== 'SALEABLE' }" :aria-disabled="result.status !== 'SALEABLE'"
-            :tabindex="result.status !== 'SALEABLE' ? -1 : 0"
-            @click.prevent="result.status !== 'SALEABLE' && $event.preventDefault()">
-            Buy
-          </router-link>
+            <router-link :to="`/booking/${result.id}`" class="btn btn-primary mt-2"
+              :class="{ disabled: result.status !== 'SALEABLE' }" :aria-disabled="result.status !== 'SALEABLE'"
+              :tabindex="result.status !== 'SALEABLE' ? -1 : 0"
+              @click.prevent="result.status !== 'SALEABLE' && $event.preventDefault()">
+              Continue
+            </router-link>
         </li>
       </ul>
     </div>
@@ -73,7 +73,6 @@
 <script>
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import { get_stations } from '@/api/stations.js'
 import { searchSolution } from '@/api/solutions.js'
 import StationAutocomplete from '@/components/StationAutocomplete.vue'
 import { DateTime } from 'luxon'
@@ -86,6 +85,7 @@ export default {
       toStation: '',
       departureDate: new Date(),
       loadingSolutions: false,
+      loadingContinue: false,
       error: '',
       results: [],
     }
@@ -123,7 +123,7 @@ export default {
       } finally {
         this.loadingSolutions = false
       }
-    }
+    },
   }
 }
 </script>
