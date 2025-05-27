@@ -15,4 +15,5 @@ export async function authenticate(username, password) {
     const data = await response.json();
     localStorage.setItem('authToken', data.token);
     localStorage.setItem('id', data.id);
+    localStorage.setItem('is_admin', data.is_admin);
 }

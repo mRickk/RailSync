@@ -1,8 +1,15 @@
 <script lang="ts" setup>
 import { logout } from '@/utils/auth.js';
 import { useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
 const route = useRoute();
+const isAdmin = ref(false);
+
+onMounted(() => {
+  const raw = localStorage.getItem('is_admin')
+  isAdmin.value = raw === 'true' // converte correttamente in boolean
+})
 
 </script>
 
@@ -17,6 +24,7 @@ const route = useRoute();
         <b-navbar-nav>
           <b-nav-item href="/home" :active="route.path === '/home'" >Home</b-nav-item>
           <b-nav-item href="/reservations" :active="route.path === '/reservations'" >Reservations</b-nav-item>
+          <b-nav-item v-if="isAdmin" href="/admin/users" :active="route.path === '/admin/users'" >User Management</b-nav-item>
         </b-navbar-nav>
 
         <!-- Right aligned nav items -->
