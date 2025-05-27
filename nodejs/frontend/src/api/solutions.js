@@ -1,8 +1,6 @@
 import { API_BASE_URL } from '@/utils/constants.js';
 
 export async function searchSolution(from, to, datetime) {
-
-    console.log("searchSolution", from, to, datetime);
     const params = new URLSearchParams({
         fromStationId: from,
         toStationId: to,
@@ -22,6 +20,5 @@ export async function searchSolution(from, to, datetime) {
     }
 
     const data = await response.json();
-    console.log(data["searchId"])
     return data;
   }

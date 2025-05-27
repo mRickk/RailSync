@@ -55,8 +55,11 @@ const filteredSuggestions = ref([])
 const isOpen = ref(false)
 const invalid = ref(false)
 let debounceTimeout = null
+let justSelected = false;
+let previousDisplayName = null;
 
 async function onInputHandler() {
+  justSelected = false
   invalid.value = false
 
   if (query.value.trim().length < 1) {
@@ -82,22 +85,50 @@ async function onInputHandler() {
 
 function selectSuggestion(station) {
   query.value = station.displayName
+  previousDisplayName = station.displayName
   isOpen.value = false
   invalid.value = false
+  justSelected = true
   emit('update:modelValue', String(station.id))
 }
 
 function onBlur() {
+  const trimmed = query.value.trim()
+
+  // Input vuoto
+  if (trimmed === '') {
+    query.value = ''
+    emit('update:modelValue', '')
+    invalid.value = true
+    isOpen.value = false
+    previousDisplayName = null
+    return
+  }
+
   const match = filteredSuggestions.value.find(
     s => s.displayName === query.value
   )
-  if (!match) {
-    query.value = ''
-    invalid.value = true
-    emit('update:modelValue', '')
+
+  if (justSelected) {
+    if (!match) {
+      query.value = ''
+      invalid.value = true
+      emit('update:modelValue', '')
+    }
+  } else {
+    justSelected = true
+    invalid.value = false
+
+    if (!match) {
+      query.value = previousDisplayName
+    } else {
+      previousDisplayName = query.value
+      emit('update:modelValue', String(match.id))
+    }
   }
   isOpen.value = false
 }
+
 </script>
 
 <style scoped>
