@@ -93,7 +93,6 @@ function selectSuggestion(station) {
 }
 
 function onBlur() {
-  query
   const trimmed = query.value.trim()
 
   // Input vuoto
@@ -109,11 +108,7 @@ function onBlur() {
   const match = filteredSuggestions.value.find(
     s => s.displayName === query.value
   )
-  console.log(filteredSuggestions.value)
-  console.log("INIZIO")
-  console.log("value " + query.value)
-  console.log("justSelected " + justSelected)
-  console.log("match " + match)
+
   if (justSelected) {
     if (!match) {
       query.value = ''
@@ -132,10 +127,6 @@ function onBlur() {
     }
   }
   isOpen.value = false
-  console.log("FINE")
-  console.log("value " + query.value)
-  console.log("justSelected " + justSelected)
-  console.log("match " + match)
 }
 
 </script>
