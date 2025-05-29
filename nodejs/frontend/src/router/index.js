@@ -6,6 +6,7 @@ import Signup from '@/views/Signup.vue';
 import Reservations from '@/views/Reservations.vue';
 import Profile from '@/views/Profile.vue';
 import UserManagement from '@/views/UserManagement.vue';
+import ReservationManagement from '@/views/ReservationManagement.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -41,6 +42,12 @@ const routes = [
         component: UserManagement,
         meta: { requiresAuth: true }
     },
+    {
+        path: '/admin/reservations',
+        name: "ReservationManagement",
+        component: ReservationManagement,
+        meta: { requiresAuth: true }
+    }
 ];
 
 const router = createRouter({
