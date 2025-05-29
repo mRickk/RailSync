@@ -5,56 +5,55 @@
     <div v-if="loading">Loading users...</div>
     <div v-else-if="error" class="text-danger">{{ error }}</div>
     <div v-else>
-      <div v-for="user in users" :key="user._id" class="user-card mx-3">
-        <p><strong>Username:</strong> {{ user.username }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-        <p><strong>Registration date:</strong> {{ new Date(user.registration_date).toLocaleString() }}</p>
-        <button @click="deleteUserAction(user._id)" class="delete-button">Delete</button>
+      <div v-for="resSol in reservations" :key="resSol._id" class="user-card mx-3">
+        <p><strong>{{ resSol.sol.origin }} → {{ resSol.sol.destination }}</strong></p>
+        <p><strong>Passenger:</strong> {{ resSol.res.name }} {{ resSol.res.surname }} </p>
+        <p><strong>Reservation date:</strong> {{ new Date(resSol.res.reservation_date).toLocaleString() }}</p>
+        <button @click="deleteReservationAction(resSol.res._id)" class="delete-button">Delete</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getAllUsers, deleteUser } from '@/api/user.js';
+import { getAllReservations, deleteReservation } from '@/api/reservations.js';
 
 export default {
-  name: "Users",
+  name: "ReservationManagement",
   data() {
     return {
-      users: [],
+      reservations: [],
       loading: false,
       error: null,
     };
   },
   methods: {
-    async fetchUsers() {
+    async fetchReservations() {
       this.loading = true;
       this.error = null;
       try {
-        let data = await getAllUsers();
-        data = data.filter(user => user._id !== localStorage.getItem("id")); // non mostra l'admin stesso
-        this.users = data;
+        let data = await getAllReservations();
+        data = data.filter(reservation => reservation._id !== localStorage.getItem("id")); // non mostra l'admin stesso
+        this.reservations = data;
       } catch (err) {
         this.error = 'Failed to load users: ' + err.message;
       } finally {
         this.loading = false;
       }
     },
-    async deleteUserAction(userId) {
-      if (!confirm("Are you sure you want to delete this user?")) return;
+    async deleteReservationAction(reservationId) {
+      if (!confirm("Are you sure you want to delete this reservation?")) return;
 
       try {
-        await deleteUser(userId);
-        this.fetchUsers();
+        await deleteReservation(reservationId);
+        this.fetchReservations();
       } catch (err) {
-        this.error = 'Failed to delete user: ' + err.message;
+        this.error = 'Failed to delete reservation: ' + err.message;
       }
     }
   },
   created() {
-    this.fetchUsers();
+    this.fetchReservations();
   }
 }
 </script>

@@ -59,10 +59,6 @@ export async function getAllUsers() {
         throw new Error("User not authenticated");
     }
 
-    if (localStorage.getItem("id") === null) {
-        throw new Error("Id not found");
-    }
-
     const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'GET',
         headers: {
@@ -83,10 +79,6 @@ export async function getAllUsers() {
 export async function deleteUser(userId) {
     if (localStorage.getItem("authToken") === null) {
         throw new Error("User not authenticated");
-    }
-
-    if (localStorage.getItem("id") === null) {
-        throw new Error("Id not found");
     }
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
