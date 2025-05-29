@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isTokenValid } from '@/api/auth';
+import { isTokenValid } from '@/api/auth.js';
 
 import Login from '@/views/Login.vue';
 import Home from '@/views/Home.vue';
