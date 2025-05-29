@@ -2,22 +2,24 @@ import { Router } from 'express';
 import { requireAuth, requireAdminOrSelf, requireAdmin } from '../util/authMiddleware.js';
 
 import {
-	search_users,
-	get_user,
-	authenticate,
-	update_user,
-	create_user,
-	delete_user
+    search_users,
+    get_user,
+    authenticate,
+    validateToken,
+    update_user,
+    create_user,
+    delete_user
 } from '../controllers/usersController.js';
 
 import {
-	get_all_user_reservations,
-	create_reservation
+    get_all_user_reservations,
+    create_reservation
 } from '../controllers/reservationsController.js';
 
 const router = Router();
 
 router.post('/auth', authenticate); //JSON username, password
+router.post('/validate', validateToken); //JSON authToken
 
 router.post("/", create_user); //JSON User
 router.get('/', requireAuth, requireAdmin, search_users);
