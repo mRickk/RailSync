@@ -6,9 +6,9 @@
     <div v-else-if="error" class="text-danger">{{ error }}</div>
     <div v-else>
       <ReservationCard 
-        v-for="res in reservations" 
-        :key="res._id || res.solution_id" 
-        :reservation="res" 
+        v-for="resSol in resSols"
+        :key="resSol.res._id"
+        :resSol="resSol"
       />
     </div>
   </div>
@@ -22,7 +22,7 @@ export default {
   components: { ReservationCard },
   data() {
     return {
-      reservations: [],
+      resSols: [],
       loading: false,
       error: null,
     };
@@ -40,7 +40,7 @@ export default {
         });
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
-        this.reservations = data;
+        this.resSols = data;
       } catch (err) {
         this.error = 'Failed to load reservations: ' + err.message;
       } finally {

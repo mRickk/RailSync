@@ -76,7 +76,7 @@ async function onInputHandler() {
       filteredSuggestions.value = results.slice(0, 10)
       isOpen.value = filteredSuggestions.value.length > 0
     } catch (error) {
-      console.error('Errore fetch stazioni:', error)
+      console.error('Error stations fetch:', error)
       filteredSuggestions.value = []
       isOpen.value = false
     }

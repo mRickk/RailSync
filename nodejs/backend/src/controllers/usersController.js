@@ -102,6 +102,7 @@ export const authenticate = async function(req, res) {
         return res.status(200).json({
             "token": jwt,
             "id": userWithoutPassword._id.toString(),
+            "is_admin": userWithoutPassword.is_admin
         });
     } catch (error) {
         return res.status(500).json({ message: 'Error during authentication: ' + error.message });

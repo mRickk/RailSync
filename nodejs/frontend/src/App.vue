@@ -1,5 +1,4 @@
 <template>
-  <link rel="shortcut icon" type="image/png" href="public/favicon.png"/>
   <Navbar v-if="showNavbar" />
   <router-view />
 </template>

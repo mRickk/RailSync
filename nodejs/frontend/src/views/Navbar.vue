@@ -1,8 +1,15 @@
 <script lang="ts" setup>
 import { logout } from '@/utils/auth.js';
 import { useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
 const route = useRoute();
+const isAdmin = ref(false);
+
+onMounted(() => {
+  const raw = localStorage.getItem('is_admin')
+  isAdmin.value = raw === 'true' // converte correttamente in boolean
+})
 
 </script>
 
@@ -18,25 +25,22 @@ const route = useRoute();
           <b-nav-item href="/home" :active="route.path === '/home'" >Home</b-nav-item>
           <b-nav-item href="/reservations" :active="route.path === '/reservations'" >Reservations</b-nav-item>
         </b-navbar-nav>
-
-        <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto">
-          <!-- <b-nav-form>
-          <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
-          <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
-        </b-nav-form> -->
+          <b-nav-item-dropdown
+            v-if="isAdmin"
+            right
+            :toggle-class="{ active: route.path.startsWith('/admin') }"
+          >
+            <template #button-content>
+              Admin Panel
+            </template>
+            <b-dropdown-item href="/admin/users">User Management</b-dropdown-item>
+            <b-dropdown-item href="/admin/reservations">Reservation Management</b-dropdown-item>
+          </b-nav-item-dropdown>
 
-          <!-- <b-nav-item-dropdown text="Lang" right>
-          <b-dropdown-item href="#">EN</b-dropdown-item>
-          <b-dropdown-item href="#">ES</b-dropdown-item>
-          <b-dropdown-item href="#">RU</b-dropdown-item>
-          <b-dropdown-item href="#">FA</b-dropdown-item>
-        </b-nav-item-dropdown> -->
 
           <b-nav-item-dropdown right>
-            <!-- Using 'button-content' slot -->
             <template #button-content>
-              <!-- <em>User</em> -->
               <i class="bi bi-person-circle" style="font-size: 1.2rem;"></i>
             </template>
             <b-dropdown-item href="/profile">Profile</b-dropdown-item>
@@ -47,3 +51,13 @@ const route = useRoute();
     </b-navbar>
   </div>
 </template>
+
+<style scoped>
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: bold;
+  border-radius: 0.25rem;
+}
+
+</style>
