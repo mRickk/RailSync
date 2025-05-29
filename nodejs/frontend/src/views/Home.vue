@@ -57,7 +57,7 @@
             <strong>Cost:</strong>
             {{ result.price ? result.price.amount + result.price.currency : 'N/A' }}
           </div>
-            <router-link :to="`/booking/${result.origin}|${result.destination}|${new Date(result.departureTime).toISOString()}|${new Date(result.arrivalTime).toISOString()}`" class="btn btn-primary mt-2"
+            <router-link :to="`/booking/${result.origin}|${result.destination}|${new Date(result.departureTime).toISOString()}|${new Date(result.arrivalTime).toISOString()}|${result.price.amount}`" class="btn btn-primary mt-2"
               :class="{ disabled: result.status !== 'SALEABLE' }" :aria-disabled="result.status !== 'SALEABLE'"
               :tabindex="result.status !== 'SALEABLE' ? -1 : 0"
               @click.prevent="result.status !== 'SALEABLE' && $event.preventDefault()">

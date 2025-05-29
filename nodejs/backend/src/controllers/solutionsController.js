@@ -25,7 +25,7 @@ export const get_solutions = async function(req, res) {
 
         const data = await response.json();
         const solutions = data.solutions.filter(
-            sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null
+            sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );
 
         try {
@@ -57,5 +57,22 @@ export const get_solutions = async function(req, res) {
         return res.status(200).json(data);
     } catch (err) {
         return res.status(500).json({ message: err.message });
+    }
+};
+
+export const get_solution = async function(req, res) {
+    const solutionId = req.params.solutionId;
+    if (!solutionId) {
+        return res.status(400).json({ message: "Solution ID is required" });
+    }
+
+    try {
+        const solution = await Solution.findOne({ solution_id: solutionId }).exec();
+        if (!solution) {
+            return res.status(404).json({ message: "Solution not found" });
+        }
+        return res.status(200).json(solution);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };
