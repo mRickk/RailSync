@@ -1,6 +1,92 @@
 
 import Reservation from '../models/reservationModel.js';
 import User from '../models/userModel.js';
+import Solution from '../models/solutionModel.js';
+
+const seedSolutions = async () => {
+  const count = await Solution.countDocuments();
+  if (count > 0) {
+    console.log("Solutions already present, skipping seeding.");
+    return;
+  }
+
+  const seedData = [
+    {
+      solution_id: "SOL001",
+      origin: "Roma",
+      destination: "Milano",
+      departure_time: new Date("2025-06-01T08:00:00Z"),
+      arrival_time: new Date("2025-06-01T11:00:00Z"),
+      duration: "3h",
+      status: "Confirmed",
+      price_currency: "€",
+      price_amount: 49.99,
+      nodes: [
+        {
+          origin: "Roma",
+          destination: "Bologna Centrale",
+          departure_time: new Date("2025-06-01T08:00:00Z"),
+          arrival_time: new Date("2025-06-01T09:30:00Z"),
+          train: {
+            train_id: "FR3940",
+            denomination: "Frecciarossa",
+            name: "3940"
+          }
+        },
+        {
+          origin: "Bologna Centrale",
+          destination: "Milano",
+          departure_time: new Date("2025-06-01T09:45:00Z"),
+          arrival_time: new Date("2025-06-01T11:00:00Z"),
+          train: {
+            train_id: "FR3942",
+            denomination: "Frecciarossa",
+            name: "3942"
+          }
+        }
+      ]
+    },
+    {
+      solution_id: "SOL002",
+      origin: "Napoli",
+      destination: "Firenze",
+      departure_time: new Date("2025-06-02T09:30:00Z"),
+      arrival_time: new Date("2025-06-02T12:00:00Z"),
+      duration: "2h 30m",
+      status: "Pending",
+      price_currency: "€",
+      price_amount: 29.50,
+      nodes: [
+        {
+          origin: "Napoli",
+          destination: "Roma",
+          departure_time: new Date("2025-06-02T09:30:00Z"),
+          arrival_time: new Date("2025-06-02T10:30:00Z"),
+          train: {
+            train_id: "FR9400",
+            denomination: "Frecciarossa",
+            name: "9400"
+          }
+        },
+        {
+          origin: "Roma",
+          destination: "Firenze",
+          departure_time: new Date("2025-06-02T10:45:00Z"),
+          arrival_time: new Date("2025-06-02T12:00:00Z"),
+          train: {
+            train_id: "FR9400",
+            denomination: "Frecciarossa",
+            name: "9402"
+          }
+        }
+      ]
+    },
+  ];
+
+  const solutions = await Solution.insertMany(seedData);
+  console.log("Seeded solutions.");
+  return solutions;
+};
 
 const seedReservations = async () => {
   const count = await Reservation.countDocuments();
@@ -12,25 +98,29 @@ const seedReservations = async () => {
   const seedData = [
     {
       solution_id: "SOL001",
-      origin: "Rome",
-      destination: "Milan",
-      departure_time: new Date("2025-06-01T08:00:00Z"),
-      arrival_time: new Date("2025-06-01T11:00:00Z"),
-      duration: "3h",
-      status: "Confirmed",
-      price_currency: "EUR",
-      price_amount: 49.99,
+      name: "Nicolas",
+      surname: "Amadori",
+      seats: [{
+        seat: "C2S1A",
+        train_id: "FR3940",
+      },
+      {
+        seat: "C2S1B",
+        train_id: "FR3942",
+      }],
     },
     {
       solution_id: "SOL002",
-      origin: "Naples",
-      destination: "Florence",
-      departure_time: new Date("2025-06-02T09:30:00Z"),
-      arrival_time: new Date("2025-06-02T12:00:00Z"),
-      duration: "2h 30m",
-      status: "Pending",
-      price_currency: "EUR",
-      price_amount: 29.50,
+      name: "Riccardo",
+      surname: "Mazzi",
+      seats: [{
+        seat: "C1S2A",
+        train_id: "FR9400",
+      },
+      {        
+        seat: "C1S2B",
+        train_id: "FR9402",
+      }],
     },
   ];
 
@@ -77,6 +167,7 @@ const seedUsers = async () => {
 
 const seedDatabase = async () => {
   await seedUsers();
+  await seedSolutions();
   const reservations = await seedReservations();
 
   if (reservations && reservations.length > 0) {

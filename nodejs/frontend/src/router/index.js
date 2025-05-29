@@ -7,6 +7,7 @@ import Reservations from '@/views/Reservations.vue';
 import Profile from '@/views/Profile.vue';
 import UserManagement from '@/views/UserManagement.vue';
 import ReservationManagement from '@/views/ReservationManagement.vue';
+import Booking from '@/views/Booking.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -47,7 +48,13 @@ const routes = [
         name: "ReservationManagement",
         component: ReservationManagement,
         meta: { requiresAuth: true }
-    }
+    },
+    {
+        path: '/booking/:solutionId',
+        name: "Booking",
+        component: Booking,
+        meta: { requiresAuth: true }
+    },
 ];
 
 const router = createRouter({

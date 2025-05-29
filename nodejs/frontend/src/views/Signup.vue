@@ -5,7 +5,7 @@ import Input from '@/components/Input.vue';
 import FormContainer from '@/components/FormContainer.vue';
 import FormContainerItem from '@/components/FormContainerItem.vue';
 import { PASSWORD_MIN_LENGTH, API_BASE_URL } from '@/utils/constants.js';
-import { authenticate } from '@/api/auth.js';
+import { authenticate } from '@/api/users.js';
 
 const username = ref('');
 const password = ref('');

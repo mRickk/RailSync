@@ -18,7 +18,6 @@ export async function updateUser(data) {
             },
             body: JSON.stringify(data)
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'Unknown error');
@@ -46,7 +45,6 @@ export async function getUser() {
             'Authorization': `Bearer ${localStorage.getItem("authToken")}`
         },
     });
-
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Unknown error');
