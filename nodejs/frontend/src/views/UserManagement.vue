@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { getAllUsers, deleteUser } from '@/api/user.js';
+import { getAllUsers, deleteUser } from '@/api/users.js';
 
 export default {
   name: "Users",
@@ -34,7 +34,7 @@ export default {
       this.error = null;
       try {
         let data = await getAllUsers();
-        data = data.filter(user => user._id !== localStorage.getItem("id")); // non mostra l'admin stesso
+        data = data.filter(user => user._id !== localStorage.getItem("id") && !user.is_admin); // non mostra l'admin stesso
         this.users = data;
       } catch (err) {
         this.error = 'Failed to load users: ' + err.message;

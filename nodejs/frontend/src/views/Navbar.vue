@@ -24,7 +24,8 @@ onMounted(() => {
         <b-navbar-nav>
           <b-nav-item href="/home" :active="route.path === '/home'" >Home</b-nav-item>
           <b-nav-item href="/reservations" :active="route.path === '/reservations'" >Reservations</b-nav-item>
-          <b-nav-item v-if="isAdmin" href="/admin/users" :active="route.path === '/admin/users'" >User Management</b-nav-item>
+          <b-nav-item v-if="isAdmin" href="/admin/users" :active="route.path === '/admin/users'" >User Management (Admin)</b-nav-item>
+          <b-nav-item v-if="isAdmin" href="/admin/reservations" :active="route.path === '/admin/reservations'" >Reservation Management (Admin)</b-nav-item>
         </b-navbar-nav>
 
         <!-- Right aligned nav items -->

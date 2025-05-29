@@ -1,8 +1,6 @@
 import { API_BASE_URL } from '@/utils/constants.js';
 
 export async function searchSolution(from, to, datetime) {
-
-    console.log("searchSolution", from, to, datetime);
     const params = new URLSearchParams({
         fromStationId: from,
         toStationId: to,
@@ -11,17 +9,16 @@ export async function searchSolution(from, to, datetime) {
 
     const response = await fetch(`${API_BASE_URL}/solutions?${params}`, {
         method: 'GET',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json'
         },
     });
-    
+
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Unknown error');
     }
 
     const data = await response.json();
-    console.log(data["searchId"])
     return data;
-  }
+}
