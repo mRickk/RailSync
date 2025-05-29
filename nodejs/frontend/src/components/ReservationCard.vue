@@ -1,30 +1,28 @@
 <template>
   <b-card :title="title" :sub-title="subtitle" class="mb-3">
-    <b-card-text>
-      <strong>Departure:</strong>
-      {{ formatDate(reservation.departure_time) }} from {{ reservation.origin }}
-    </b-card-text>
-    <b-card-text>
-      <strong>Arrival:</strong> {{ formatDate(reservation.arrival_time) }} at
-      {{ reservation.destination }}
-    </b-card-text>
-    <b-card-text v-if="reservation.duration">
-      <strong>Duration:</strong> {{ reservation.duration }}
-    </b-card-text>
-    <b-card-text v-if="reservation.status">
-      <strong>Status:</strong> {{ reservation.status }}
-    </b-card-text>
     <b-card-text
-      v-if="
-        reservation.price_amount !== undefined && reservation.price_currency
-      "
+      v-for="(node, index) in resSol.sol.nodes"
+      :key="index"
     >
-      <strong>Price:</strong> {{ reservation.price_amount }}
-      {{ reservation.price_currency }}
+      Departure:
+      {{ formatDate(node.departure_time) }} from <strong>{{ node.origin }}</strong><br />
+
+      Arrival:
+      {{ formatDate(node.arrival_time) }} at <strong>{{ node.destination }}</strong><br />
+
+      Train: <strong>{{ node.train.train_id }}</strong><br />
+      Seat: <strong>{{ resSol.res.seats.find(s => s.train_id === node.train.train_id).seat }}</strong>
+    </b-card-text>
+
+    <b-card-text>
+      Duration: <strong>{{ resSol.sol.duration }}</strong> Price: <strong>{{ resSol.sol.price_amount }} {{ resSol.sol.price_currency }}</strong>
+    </b-card-text>
+    <b-card-text>
+      Passenger: <strong>{{ resSol.res.name }} {{ resSol.res.surname }}</strong>
     </b-card-text>
     <b-card-text>
       <small class="text-muted"
-        >Reserved on: {{ formatDate(reservation.reservation_date) }}</small
+        >Reserved on: {{ formatDate(resSol.res.reservation_date) }}</small
       >
     </b-card-text>
 
@@ -36,23 +34,27 @@
 export default {
   name: "ReservationCard",
   props: {
-    reservation: {
+    resSol: {
       type: Object,
       required: true,
     },
   },
   computed: {
     title() {
-      return `${this.reservation.origin} → ${this.reservation.destination}`;
+      return `${this.resSol.sol.origin} → ${this.resSol.sol.destination}`;
     },
     subtitle() {
-      return `Solution ID: ${this.reservation.solution_id}`;
+      return `Solution ID: ${this.resSol.solution_id}`;
     },
   },
   methods: {
     formatDate(date) {
       if (!date) return "";
-      return new Date(date).toLocaleString();
+      const d = new Date(date);
+      // if (d.toISOString() == date) {
+      //   d.setHours(d.getHours() + 2); // Local timezone
+      // }
+      return d.toLocaleString();
     },
   },
 };

@@ -28,8 +28,8 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-01T08:00:00Z"),
           arrival_time: new Date("2025-06-01T09:30:00Z"),
           train: {
+            train_id: "FR3940",
             denomination: "Frecciarossa",
-            acronym: "FR",
             name: "3940"
           }
         },
@@ -39,8 +39,8 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-01T09:45:00Z"),
           arrival_time: new Date("2025-06-01T11:00:00Z"),
           train: {
+            train_id: "FR3942",
             denomination: "Frecciarossa",
-            acronym: "FR",
             name: "3942"
           }
         }
@@ -63,8 +63,8 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-02T09:30:00Z"),
           arrival_time: new Date("2025-06-02T10:30:00Z"),
           train: {
+            train_id: "FR9400",
             denomination: "Frecciarossa",
-            acronym: "FR",
             name: "9400"
           }
         },
@@ -74,8 +74,8 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-02T10:45:00Z"),
           arrival_time: new Date("2025-06-02T12:00:00Z"),
           train: {
+            train_id: "FR9400",
             denomination: "Frecciarossa",
-            acronym: "FR",
             name: "9402"
           }
         }
@@ -100,13 +100,27 @@ const seedReservations = async () => {
       solution_id: "SOL001",
       name: "Nicolas",
       surname: "Amadori",
-      seat: "C2S1A",
+      seats: [{
+        seat: "C2S1A",
+        train_id: "FR3940",
+      },
+      {
+        seat: "C2S1B",
+        train_id: "FR3942",
+      }],
     },
     {
       solution_id: "SOL002",
       name: "Riccardo",
       surname: "Mazzi",
-      seat: "C1S2A",
+      seats: [{
+        seat: "C1S2A",
+        train_id: "FR9400",
+      },
+      {        
+        seat: "C1S2B",
+        train_id: "FR9402",
+      }],
     },
   ];
 

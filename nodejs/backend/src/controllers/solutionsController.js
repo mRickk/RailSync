@@ -24,26 +24,29 @@ export const get_solutions = async function(req, res) {
         });
 
         const data = await response.json();
+        const solutions = data.solutions.filter(
+            sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null
+        );
 
         try {
-            await Solution.insertMany(data.solutions.map(solution => ({
-                solution_id: solution.solution.origin + "|" + solution.solution.destination + "|" + (new Date(solution.solution.departureTime).toISOString()) + "|" + (new Date(solution.solution.arrivalTime).toISOString()),
-                origin: solution.solution.origin,
-                destination: solution.solution.destination,
-                departure_time: new Date(solution.solution.departureTime),
-                arrival_time: new Date(solution.solution.arrivalTime),
-                duration: solution.solution.duration,
-                status: solution.solution.status,
-                price_currency: solution.solution.price?.currency,
-                price_amount: solution.solution.price?.amount,
-                nodes: solution.solution.nodes?.map(node => ({
+            await Solution.insertMany(solutions.map(sol => ({
+                solution_id: sol.solution.origin + "|" + sol.solution.destination + "|" + (new Date(sol.solution.departureTime).toISOString()) + "|" + (new Date(sol.solution.arrivalTime).toISOString()) + "|" + sol.solution.price?.amount,
+                origin: sol.solution.origin,
+                destination: sol.solution.destination,
+                departure_time: new Date(sol.solution.departureTime),
+                arrival_time: new Date(sol.solution.arrivalTime),
+                duration: sol.solution.duration,
+                status: sol.solution.status,
+                price_currency: sol.solution.price?.currency,
+                price_amount: sol.solution.price?.amount,
+                nodes: sol.solution.nodes?.map(node => ({
                     origin: node.origin,
                     destination: node.destination,
                     departure_time: new Date(node.departureTime),
                     arrival_time: new Date(node.arrivalTime),
                     train: {
+                        train_id: node.train?.acronym + node.train?.name,
                         denomination: node.train?.denomination,
-                        acronym: node.train?.acronym,
                         name: node.train?.name
                     }
                 }))

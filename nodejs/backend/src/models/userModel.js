@@ -9,7 +9,7 @@ var UserSchema = new Schema({
     last_name: { type: String, required: true },
     is_admin: { type: Boolean, default: false },
     registration_date: { type: Date, default: Date.now },
-    reservations: { type: [Schema.Types.ObjectId], ref: 'Reservation', default: [] }
+    reservations: { type: [String], default: [] }
 });
 
 export default mongoose.model('User', UserSchema);
