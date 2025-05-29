@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { isTokenValid } from '@/api/auth';
 
 import Login from '@/views/Login.vue';
 import Home from '@/views/Home.vue';
@@ -35,12 +36,24 @@ const router = createRouter({
     routes
 });
 
-router.beforeEach((to, from, next) => {
-    const isAuthenticated = !!localStorage.getItem('authToken');
+router.beforeEach(async(to, from, next) => {
+    const authToken = localStorage.getItem('authToken');
+    const isTokenAvailable = !!authToken;
+    let isAuthenticated = false;
+
+    if (isTokenAvailable) {
+        try {
+            isAuthenticated = await isTokenValid(authToken);
+        } catch (error) {
+            console.error('Token validation error:', error);
+            isAuthenticated = false;
+        }
+    }
 
     if (to.meta.requiresAuth && !isAuthenticated) {
+        localStorage.clear();
         next('/login');
-    } else if ((to.path === '/login' || to.path === '/signup') && isAuthenticated) {
+    } else if (isAuthenticated && (to.path === '/login' || to.path === '/signup')) {
         next('/home');
     } else {
         next();
