@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { getUser } from '@/api/users.js';
-import { bookSeat } from '@/api/reservations.js';
+import { getSolution } from '@/api/solutions.js';
+import { bookSeat, getOccupiedSeats } from '@/api/reservations.js';
 
 const router = useRouter();
+const route = useRoute();
+const solutionId = computed(() => route.params.solution_id);
+console.log("solution_id:", solutionId.value);
+const solution = ref(null);
+const occupiedSeats = ref({});
+const trains = computed(() => solution.value?.nodes.map(node => node.train) || []);
+const currentTrainIdx = ref(0);
 
 interface Seat {
   id: string;
@@ -12,82 +20,71 @@ interface Seat {
   status: 'available' | 'selected' | 'occupied';
 }
 
-const carriages = 3;
 const rows = 12;
 const seatsPerRow = 4;
-const currentCarriage = ref(1);
-const seatLayout = reactive<Seat[][][]>([]);
-const selectedSeatId = ref<string | null>(null);
-const selectRandomSeat = ref(false);
+const seatLayouts = reactive<Seat[][][]>([]); // [train][row][seat]
+const selectedSeats = ref<(string | null)[]>([]); // [trainIdx] = seatId
 
-const generateSeatLayout = () => {
-  seatLayout.length = 0;
-  for (let w = 0; w < carriages; w++) {
-    const carriage: Seat[][] = [];
+const generateSeatLayouts = () => {
+  seatLayouts.length = 0;
+  for (let t = 0; t < trains.value.length; t++) {
+    const train = trains.value[t];
+    const occupied = Array.from(occupiedSeats.value.find(s => s.train_id === train.train_id).seats) || [];
+    console.log(`Occupied seats for train ${train.train_id}:`, occupied);
+    const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
       const labels = ['A', 'B', 'C', 'D'];
       for (let c = 0; c < seatsPerRow; c++) {
+        const seatId = `${r + 1}${labels[c]}`;
         row.push({
-          id: `C${w + 1}S${r + 1}${labels[c]}`,
-          label: `${r + 1}${labels[c]}`,
-          status: Math.random() < 0.2 ? 'occupied' : 'available', // Randomly mark some seats as occupied
+          id: seatId,
+          label: seatId,
+          status: occupied.includes(seatId) ? 'occupied' : 'available',
         });
       }
-      carriage.push(row);
+      layout.push(row);
     }
-    seatLayout.push(carriage);
+    seatLayouts.push(layout);
   }
+  selectedSeats.value = Array(trains.value.length).fill(null);
 };
 
 const handleSeatClick = (seat: Seat) => {
-  if (selectRandomSeat.value || seat.status === 'occupied') return;
-
-  if (selectedSeatId.value) {
-    const prevSeat = findSeatById(selectedSeatId.value);
+  if (seat.status === 'occupied') return;
+  const prevSeatId = selectedSeats.value[currentTrainIdx.value];
+  if (prevSeatId) {
+    const prevSeat = findSeatById(currentTrainIdx.value, prevSeatId);
     if (prevSeat) prevSeat.status = 'available';
   }
-
-  selectedSeatId.value = seat.id;
+  selectedSeats.value[currentTrainIdx.value] = seat.id;
   seat.status = 'selected';
 };
 
-const findSeatById = (id: string): Seat | undefined => {
-  for (const carriage of seatLayout) {
-    for (const row of carriage) {
-      const seat = row.find((s) => s.id === id);
-      if (seat) return seat;
-    }
+const findSeatById = (trainIdx: number, id: string): Seat | undefined => {
+  for (const row of seatLayouts[trainIdx]) {
+    const seat = row.find((s) => s.id === id);
+    if (seat) return seat;
   }
   return undefined;
 };
 
-const switchCarriage = (direction: 'prev' | 'next') => {
-  if (direction === 'prev' && currentCarriage.value > 1) {
-    currentCarriage.value--;
-  } else if (direction === 'next' && currentCarriage.value < carriages) {
-    currentCarriage.value++;
+const switchTrain = (direction: 'prev' | 'next') => {
+  if (direction === 'prev' && currentTrainIdx.value > 0) {
+    currentTrainIdx.value--;
+  } else if (direction === 'next' && currentTrainIdx.value < trains.value.length - 1) {
+    currentTrainIdx.value++;
   }
 };
-
-watch(selectRandomSeat, (isRandom) => {
-  if (isRandom && selectedSeatId.value) {
-    const prevSeat = findSeatById(selectedSeatId.value);
-    if (prevSeat) prevSeat.status = 'available';
-    selectedSeatId.value = null;
-  }
-});
 
 interface UserInfo {
   firstName: string;
   lastName: string;
 }
-
 const userInfo = reactive<UserInfo>({
   firstName: '',
   lastName: '',
 });
-
 const fetchUserInfo = async () => {
   try {
     const user = await getUser();
@@ -102,39 +99,31 @@ const isSubmitting = ref(false);
 const bookingError = ref<string | null>(null);
 
 const canSubmit = computed(() => {
-  return (selectedSeatId.value || selectRandomSeat.value) && userInfo.firstName && userInfo.lastName;
+  return selectedSeats.value.every(seatId => !!seatId) && userInfo.firstName && userInfo.lastName;
 });
 
 const completeReservation = async () => {
   if (!canSubmit.value || isSubmitting.value) return;
-
   isSubmitting.value = true;
   bookingError.value = null;
 
-  let seatToBook = selectedSeatId.value;
-
-  if (selectRandomSeat.value) {
-    const availableSeats = seatLayout.flat(2).filter((s) => s.status === 'available');
-    if (availableSeats.length > 0) {
-      seatToBook = availableSeats[Math.floor(Math.random() * availableSeats.length)].id;
-    } else {
-      bookingError.value = 'No seats available for random selection.';
-      isSubmitting.value = false;
-      return;
-    }
-  }
-
   try {
-    bookSeat({
-      solution_id: router.currentRoute.value.params.solution_id,
+    const seats = trains.value.map((train, idx) => ({
+      train_id: train.train_id,
+      seat: selectedSeats.value[idx],
+    }));
+
+    await bookSeat({
+      solution_id: solutionId.value,
       name: userInfo.firstName,
       surname: userInfo.lastName,
-      seat: seatToBook,
+      seats,
     });
   } catch (error) {
     bookingError.value = error.message || 'Failed to complete reservation.';
   } finally {
     isSubmitting.value = false;
+    router.push('/reservations');
   }
 };
 
@@ -142,9 +131,20 @@ const cancelReservation = () => {
   router.push('/home');
 };
 
-onMounted(() => {
-  generateSeatLayout();
-  fetchUserInfo();
+onMounted(async () => {
+  try {
+    solution.value = await getSolution(solutionId.value);
+    if (!solution.value) {
+      throw new Error('Solution not found');
+    }
+    occupiedSeats.value = await getOccupiedSeats(solutionId.value);
+    generateSeatLayouts();
+    fetchUserInfo();
+  } catch (error) {
+    console.error('Failed to load booking data:', error);
+    router.push('/home');
+    return;
+  }
 });
 </script>
 
@@ -153,31 +153,21 @@ onMounted(() => {
     <h1>Complete Your Booking</h1>
 
     <section class="seat-selector-section">
-      <h2>Select Your Seat</h2>
-      <div class="form-check mb-3">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="randomSeatCheck"
-          v-model="selectRandomSeat"
-        />
-        <label class="form-check-label" for="randomSeatCheck">
-          Select a random seat for me
-        </label>
-      </div>
-
-      <div class="carriage-controls">
-        <button class="btn btn-secondary" @click="switchCarriage('prev')" :disabled="currentCarriage === 1">
-          &lt; Previous Carriage
+      <h2>Select Your Seat for Each Train</h2>
+      <div class="train-controls">
+        <button class="btn btn-secondary" @click="switchTrain('prev')" :disabled="currentTrainIdx === 0">
+          &lt; Previous Train
         </button>
-        <span>Carriage {{ currentCarriage }}</span>
-        <button class="btn btn-secondary" @click="switchCarriage('next')" :disabled="currentCarriage === carriages">
-          Next Carriage &gt;
+        <span>
+          Train {{ currentTrainIdx + 1 }}: {{ trains[currentTrainIdx]?.train_id }}
+        </span>
+        <button class="btn btn-secondary" @click="switchTrain('next')" :disabled="currentTrainIdx === trains.length - 1">
+          Next Train &gt;
         </button>
       </div>
 
-      <div class="seat-map-container" :class="{ disabled: selectRandomSeat }">
-        <div v-for="(row, rowIndex) in seatLayout[currentCarriage - 1]" :key="`row-${rowIndex}`" class="seat-row">
+      <div class="seat-map-container">
+        <div v-for="(row, rowIndex) in seatLayouts[currentTrainIdx]" :key="`row-${rowIndex}`" class="seat-row">
           <template v-for="(seat, seatIndex) in row" :key="seat.id">
             <div
               class="seat"
@@ -190,9 +180,18 @@ onMounted(() => {
           </template>
         </div>
       </div>
-      <p v-if="!selectRandomSeat && selectedSeatId" class="mt-2">
-        Selected Seat: <strong>{{ selectedSeatId }}</strong>
+      <p v-if="selectedSeats[currentTrainIdx]" class="mt-2">
+        Selected Seat: <strong>{{ selectedSeats[currentTrainIdx] }}</strong>
       </p>
+    </section>
+
+    <section class="selected-seats-section" v-if="trains.length > 1">
+      <h3>Selected Seats for All Trains</h3>
+      <ul>
+        <li v-for="(train, idx) in trains" :key="train.train_id">
+          {{ train.train_id }}: <strong>{{ selectedSeats[idx] || 'None' }}</strong>
+        </li>
+      </ul>
     </section>
 
     <section class="personal-info-section">
@@ -239,7 +238,7 @@ onMounted(() => {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
-.carriage-controls {
+.train-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -107,3 +107,30 @@ export const get_all_reservations = async function(req, res) {
         return res.status(500).json({ message: err });
     }
 }
+
+export const get_occupied_seats = async function(req, res) {
+    try {
+        const solutionId = req.params.solutionId;
+        if (!solutionId) {
+            return res.status(400).json({ message: "Solution ID is required" });
+        }
+        const solution = await Solution.findOne({ solution_id: solutionId }).exec();
+        if (!solution) {
+            return res.status(404).json({ message: "Solution not found" });
+        }
+        const trains = solution.nodes.map(node => node.train.train_id);
+        const occupiedSeats = (await Reservation.where("seats.train_id")
+            .in(trains)
+            .exec()).map(reservation => reservation.seats);
+        const trainsToOccupiedSeats = trains.map(trainId => {
+            const seats = occupiedSeats
+                .flat()
+                .filter(s => s.train_id === trainId)
+                .map(s => s.seat);
+            return { train_id: trainId, seats };
+        });
+        return res.status(200).json(trainsToOccupiedSeats);
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+}

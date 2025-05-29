@@ -30,7 +30,7 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/booking/:solutionId',
+        path: '/booking/:solution_id',
         name: "Booking",
         component: Booking,
         meta: { requiresAuth: true }
