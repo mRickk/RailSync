@@ -98,7 +98,7 @@ services:
 networks:
   inner:
     driver: bridge
-    internal: true
+    internal: false #Impostato a false poichè i backend necessitano di accedere ad internet per le chiamate API
     driver_opts:
        com.docker.network.bridge.name: "br-inner89012"
        com.docker.network.enable_ipv6: "false"

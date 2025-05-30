@@ -12,6 +12,7 @@ export const get_solutions = async function(req, res) {
         "departureTime": datetime,
         "adults": 1,
     };
+    console.log(payload);
 
     try {
         const response = await fetch("https://www.lefrecce.it/Channels.Website.BFF.WEB/website/ticket/solutions", {
