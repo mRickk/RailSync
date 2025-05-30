@@ -10,8 +10,8 @@
       Arrival:
       {{ formatDate(node.arrival_time) }} at <strong>{{ node.destination }}</strong><br />
 
-      Train: <strong>{{ node.train.train_id }}</strong><br />
-      Seat: <strong>{{ resSol.res.seats.find(s => s.train_id === node.train.train_id).seat }}</strong>
+      Train: <strong>{{ node.train_id }}</strong><br />
+      Seat: <strong>{{ resSol.res.seats.find(s => s.train_id === node.train_id).seat }}</strong>
     </b-card-text>
 
     <b-card-text>

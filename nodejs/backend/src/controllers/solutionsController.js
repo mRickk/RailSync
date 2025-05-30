@@ -1,4 +1,5 @@
 import Solution from "../models/solutionModel.js";
+import Train from "../models/trainModel.js";
 
 export const get_solutions = async function(req, res) {
     const { fromStationId, toStationId, datetime } = req.query;
@@ -28,6 +29,10 @@ export const get_solutions = async function(req, res) {
             sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );
 
+        for (const train in solutions.map(sol => sol.solution.nodes).flat().map(node => node.train_id).flat()) {
+            console.log("Train ID:", train);
+        }
+
         try {
             await Solution.insertMany(solutions.map(sol => ({
                 solution_id: sol.solution.origin + "|" + sol.solution.destination + "|" + (new Date(sol.solution.departureTime).toISOString()) + "|" + (new Date(sol.solution.arrivalTime).toISOString()) + "|" + sol.solution.price?.amount,
@@ -41,20 +46,18 @@ export const get_solutions = async function(req, res) {
                 price_amount: sol.solution.price?.amount,
                 nodes: sol.solution.nodes?.map(node => ({
                     origin: node.origin,
+                    origin_id: node.originId,
                     destination: node.destination,
+                    destination_id: node.destinationId,
                     departure_time: new Date(node.departureTime),
                     arrival_time: new Date(node.arrivalTime),
-                    train: {
-                        train_id: node.train?.acronym + node.train?.name,
-                        denomination: node.train?.denomination,
-                        name: node.train?.name
-                    }
+                    train_id: node.train?.acronym + node.train?.name,
                 }))
             })), { ordered: false });
         } catch (e) {
             // console.warn("Duplicates skipped:", e.writeErrors);
         }
-        return res.status(200).json(data);
+        return res.status(200).json(solutions);
     } catch (err) {
         return res.status(500).json({ message: err.message });
     }

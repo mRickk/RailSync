@@ -2,6 +2,73 @@
 import Reservation from '../models/reservationModel.js';
 import User from '../models/userModel.js';
 import Solution from '../models/solutionModel.js';
+import Train from '../models/trainModel.js';
+
+const seedTrains = async () => {
+  const count = await Train.countDocuments();
+  if (count > 0) {
+    console.log("Trains already present, skipping seeding");
+    return;
+  }
+
+  const seedData = [
+    {
+      train_id: "FR3940",
+      denomination: "Frecciarossa",
+      code: "3940",
+      stations: [{
+        station_id: "S0527",
+        name: "Roma",
+        millisDepartureDate: 1748556000000
+      },
+      {
+        station_id: "S0528",
+        name: "Firenze",
+        millisDepartureDate: 1748560000000
+      },
+      {
+        station_id: "S0529",
+        name: "Bologna Centrale",
+        millisDepartureDate: 1748650000000
+      }]
+    },
+    {
+      train_id: "FR3942",
+      denomination: "Frecciarossa",
+      name: "3942",
+      stations: [{
+        station_id: "S0529",
+        name: "Bologna Centrale",
+        millisDepartureDate: 1748580000000
+      },
+      {
+        station_id: "S0530",
+        name: "Modena",
+        millisDepartureDate: 1748584000000
+      },
+      {
+        station_id: "S0531",
+        name: "Milano",
+        millisDepartureDate: 1748590000000
+      }]
+    },
+    {
+      train_id: "FR9400",
+      denomination: "Frecciarossa",
+      code: "9400",
+      stations: [{
+        station_id: "S0540",
+        name: "Napoli",
+        millisDepartureDate: 1748556000000
+      },
+      {
+        station_id: "S0527",
+        name: "Roma",
+        millisDepartureDate: 1748560000000
+      }]
+    }
+  ]
+}
 
 const seedSolutions = async () => {
   const count = await Solution.countDocuments();
@@ -24,32 +91,28 @@ const seedSolutions = async () => {
       nodes: [
         {
           origin: "Roma",
+          origin_id: "S0527",
           destination: "Bologna Centrale",
+          destination_id: "S0529",
           departure_time: new Date("2025-06-01T08:00:00Z"),
           arrival_time: new Date("2025-06-01T09:30:00Z"),
-          train: {
-            train_id: "FR3940",
-            denomination: "Frecciarossa",
-            name: "3940"
-          }
+          train_id: "FR3940",
         },
         {
           origin: "Bologna Centrale",
+          origin_id: "S0529",
           destination: "Milano",
+          destination_id: "S0531",
           departure_time: new Date("2025-06-01T09:45:00Z"),
           arrival_time: new Date("2025-06-01T11:00:00Z"),
-          train: {
-            train_id: "FR3942",
-            denomination: "Frecciarossa",
-            name: "3942"
-          }
+          train_id: "FR3942"
         }
       ]
     },
     {
       solution_id: "SOL002",
       origin: "Napoli",
-      destination: "Firenze",
+      destination: "Roma",
       departure_time: new Date("2025-06-02T09:30:00Z"),
       arrival_time: new Date("2025-06-02T12:00:00Z"),
       duration: "2h 30m",
@@ -59,25 +122,12 @@ const seedSolutions = async () => {
       nodes: [
         {
           origin: "Napoli",
+          origin_id: "S0540",
           destination: "Roma",
+          destination_id: "S0527",
           departure_time: new Date("2025-06-02T09:30:00Z"),
           arrival_time: new Date("2025-06-02T10:30:00Z"),
-          train: {
-            train_id: "FR9400",
-            denomination: "Frecciarossa",
-            name: "9400"
-          }
-        },
-        {
-          origin: "Roma",
-          destination: "Firenze",
-          departure_time: new Date("2025-06-02T10:45:00Z"),
-          arrival_time: new Date("2025-06-02T12:00:00Z"),
-          train: {
-            train_id: "FR9400",
-            denomination: "Frecciarossa",
-            name: "9402"
-          }
+          train_id: "FR9400",
         }
       ]
     },
@@ -101,11 +151,11 @@ const seedReservations = async () => {
       name: "Nicolas",
       surname: "Amadori",
       seats: [{
-        seat: "C2S1A",
+        seat: "1A",
         train_id: "FR3940",
       },
       {
-        seat: "C2S1B",
+        seat: "1B",
         train_id: "FR3942",
       }],
     },
@@ -114,13 +164,9 @@ const seedReservations = async () => {
       name: "Riccardo",
       surname: "Mazzi",
       seats: [{
-        seat: "C1S2A",
+        seat: "2A",
         train_id: "FR9400",
-      },
-      {        
-        seat: "C1S2B",
-        train_id: "FR9402",
-      }],
+      }]
     },
   ];
 
@@ -166,6 +212,7 @@ const seedUsers = async () => {
 };
 
 const seedDatabase = async () => {
+  await seedTrains();
   await seedUsers();
   await seedSolutions();
   const reservations = await seedReservations();

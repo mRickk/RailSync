@@ -13,14 +13,12 @@ var SolutionSchema = new Schema({
     price_amount: { type: Number, required: true },
     nodes: [{
         origin: { type: String, required: true },
+        origin_id: { type: String, required: true, },
         destination: { type: String, required: true },
+        destination_id: { type: String, required: true },
         departure_time: { type: Date, required: true },
         arrival_time: { type: Date, required: true },
-        train: {
-            train_id: { type: String, required: true },
-            denomination: { type: String, required: true },
-            name: { type: String, required: true }
-        }
+        train_id: { type: String, required: true },
     }]
 });
 

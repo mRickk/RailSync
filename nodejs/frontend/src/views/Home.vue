@@ -38,24 +38,23 @@
     <div v-if="results.length" class="mt-5 w-full max-w-2xl" style="min-width: 800px;">
       <!-- <h2 class="text-xl font-semibold mb-2">Results:</h2> -->
       <ul class="list-group">
-        <li class="list-group-item flex justify-between items-center" v-for="result in results" :key="result.id">
+        <li class="list-group-item flex justify-between items-center" v-for="result in results.filter(r => r.price !== null)" :key="result.id">
           <div class="flex-grow">
             <strong class="text-primary">
-              {{result.trains.map(train => train.denomination + ' ' + train.name).join(' / ')}}
+              {{result.trains.map(t => t.denomination + " " + t.acronym + "" + t.name ).join(' / ')}}
             </strong>
           </div>
           <div class="flex-grow">
-            <strong>Departure:</strong> {{ result.origin }} ({{ new Date(result.departureTime).toLocaleString() }})
+            Departure: <strong>({{ new Date(result.departureTime).toLocaleString() }})</strong> {{ result.origin }}
           </div>
           <div class="flex-grow">
-            <strong>Arrival:</strong> {{ result.destination }} ({{ new Date(result.arrivalTime).toLocaleString() }})
+            Arrival: <strong>({{ new Date(result.arrivalTime).toLocaleString() }})</strong> {{ result.destination }}
           </div>
           <div class="flex-grow">
-            <strong>Duration:</strong> {{ result.duration }}
+            Duration: <strong>{{ result.duration }}</strong>
           </div>
           <div class="flex-grow">
-            <strong>Cost:</strong>
-            {{ result.price ? result.price.amount + result.price.currency : 'N/A' }}
+            Cost: <strong>{{ result.price ? result.price.amount + result.price.currency : 'N/A' }}</strong>
           </div>
             <router-link :to="`/booking/${result.origin}|${result.destination}|${new Date(result.departureTime).toISOString()}|${new Date(result.arrivalTime).toISOString()}|${result.price.amount}`" class="btn btn-primary mt-2"
               :class="{ disabled: result.status !== 'SALEABLE' }" :aria-disabled="result.status !== 'SALEABLE'"
