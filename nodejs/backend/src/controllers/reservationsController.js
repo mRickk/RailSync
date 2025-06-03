@@ -1,6 +1,7 @@
 import Reservation from '../models/reservationModel.js';
 import User from '../models/userModel.js';
 import Solution from '../models/solutionModel.js';
+import Train from '../models/trainModel.js';
 
 // export const search_reservations = async function(req, res) {
 // 	try {

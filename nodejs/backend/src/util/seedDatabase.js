@@ -19,17 +19,14 @@ const seedTrains = async () => {
       stations: [{
         station_id: "S0527",
         name: "Roma",
-        millisDepartureDate: 1748556000000
       },
       {
         station_id: "S0528",
         name: "Firenze",
-        millisDepartureDate: 1748560000000
       },
       {
         station_id: "S0529",
         name: "Bologna Centrale",
-        millisDepartureDate: 1748650000000
       }]
     },
     {
@@ -39,17 +36,14 @@ const seedTrains = async () => {
       stations: [{
         station_id: "S0529",
         name: "Bologna Centrale",
-        millisDepartureDate: 1748580000000
       },
       {
         station_id: "S0530",
         name: "Modena",
-        millisDepartureDate: 1748584000000
       },
       {
         station_id: "S0531",
         name: "Milano",
-        millisDepartureDate: 1748590000000
       }]
     },
     {
@@ -59,12 +53,10 @@ const seedTrains = async () => {
       stations: [{
         station_id: "S0540",
         name: "Napoli",
-        millisDepartureDate: 1748556000000
       },
       {
         station_id: "S0527",
         name: "Roma",
-        millisDepartureDate: 1748560000000
       }]
     }
   ]
@@ -97,6 +89,7 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-01T08:00:00Z"),
           arrival_time: new Date("2025-06-01T09:30:00Z"),
           train_id: "FR3940",
+          millis_departure_date: 1748556000000
         },
         {
           origin: "Bologna Centrale",
@@ -105,7 +98,8 @@ const seedSolutions = async () => {
           destination_id: "S0531",
           departure_time: new Date("2025-06-01T09:45:00Z"),
           arrival_time: new Date("2025-06-01T11:00:00Z"),
-          train_id: "FR3942"
+          train_id: "FR3942",
+          millis_departure_date: 1748556000000
         }
       ]
     },
@@ -128,6 +122,7 @@ const seedSolutions = async () => {
           departure_time: new Date("2025-06-02T09:30:00Z"),
           arrival_time: new Date("2025-06-02T10:30:00Z"),
           train_id: "FR9400",
+          millis_departure_date: 1748560000000
         }
       ]
     },

@@ -19,6 +19,7 @@ var SolutionSchema = new Schema({
         departure_time: { type: Date, required: true },
         arrival_time: { type: Date, required: true },
         train_id: { type: String, required: true },
+        millis_departure_date: { type: Number, required: true},
     }]
 });
 

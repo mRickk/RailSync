@@ -8,7 +8,6 @@ var TrainSchema = new Schema({
     stations: [{
         station_id: { type: String, required: true },
         name: { type: String, required: true },
-        millisDepartureDate: { type: Number, required: true},
     }]
 });
 

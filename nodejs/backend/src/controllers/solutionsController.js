@@ -28,9 +28,44 @@ export const get_solutions = async function(req, res) {
         const solutions = data.solutions.filter(
             sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );
-
-        for (const train in solutions.map(sol => sol.solution.nodes).flat().map(node => node.train_id).flat()) {
-            console.log("Train ID:", train);
+        try {
+            for (const sol of solutions) {
+                for (const node in sol.solution.nodes) {
+                    if (node.train && node.train.acronym && node.train.name) {
+                        const trainId = node.train.acronym + node.train.name;
+                        const existingTrain = await Train.findOne({ train_id: trainId }).exec();
+                        if (!existingTrain) {
+                            const trainCode = node.train.name;
+                            const resTrainId = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/cercaNumeroTreno/${trainCode}`, {
+                                method: "GET",
+                                headers: {
+                                    "Accept": "application/json"
+                                }
+                            });
+                            const codLocOrig = (await resTrainId.json()).codLocOrig;
+                            const millis_departure_date = new Date(node.departureTime).setUTCHours(0, 0, 0, 0).getTime();
+                            const res = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/tratteCanvas/${codLocOrig}/${trainCode}/${millis_departure_date}`, {
+                                method: "GET",
+                                headers: {
+                                    "Accept": "application/json"
+                                }
+                            });
+                            const stations = await res.json();
+                            await Train.insertOne({
+                                train_id: trainId,
+                                denomination: node.train.denomination,
+                                code: trainCode,
+                                stations: stations.map(station => ({
+                                    station_id: station.id,
+                                    name: station.stazione
+                                }))
+                            }, { ordered: false });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Error while fetching train data:", e);
         }
 
         try {
@@ -46,12 +81,13 @@ export const get_solutions = async function(req, res) {
                 price_amount: sol.solution.price?.amount,
                 nodes: sol.solution.nodes?.map(node => ({
                     origin: node.origin,
-                    origin_id: node.originId,
+                    origin_id: convertStationId(node.originId),
                     destination: node.destination,
-                    destination_id: node.destinationId,
+                    destination_id: convertStationId(node.destinationId),
                     departure_time: new Date(node.departureTime),
                     arrival_time: new Date(node.arrivalTime),
                     train_id: node.train?.acronym + node.train?.name,
+                    millis_departure_date: new Date(node.departureTime).setUTCHours(0, 0, 0, 0).getTime(), //TODO: check
                 }))
             })), { ordered: false });
         } catch (e) {
@@ -62,6 +98,10 @@ export const get_solutions = async function(req, res) {
         return res.status(500).json({ message: err.message });
     }
 };
+
+function convertStationId(frecceStationId) {
+    return "S" + frecceStationId.slice(-5);
+}
 
 export const get_solution = async function(req, res) {
     const solutionId = req.params.solutionId;
