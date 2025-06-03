@@ -117,12 +117,21 @@ export const validateToken = async function(req, res) {
             return res.status(400).json({ message: "Authentication token is required" });
         }
 
-        await jwtVerify(authToken, JWT_KEY, {
-            issuer: ISSUER,
-            audience: AUDIENCE
-        });
+        const { payload } = await jwtVerify(authToken, JWT_KEY, {
+			issuer: ISSUER,
+			audience: AUDIENCE
+		});
+        
+        if (!payload?.id) {
+            return res.status(400).json({ message: 'Token payload missing user ID' });
+        }
+    
+        const userExists = await User.exists({ _id: payload.id });
+        if (!userExists) {
+          return res.status(401).json({ message: 'Invalid or expired authentication token' });
+        }        
 
-        return res.sendStatus(200);
+        return res.status(200).json({ message: "Token is valid" });
     } catch (error) {
         if (error.name === 'JWTClaimValidationFailed' ||
             error.name === 'JWTExpired' ||
