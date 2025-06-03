@@ -10,8 +10,6 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const mongoUrl = 'mongodb://mongodb:27017/dbrs';
-
 const app = express();
 
 const corsOptions = {
@@ -33,7 +31,7 @@ global.appRoot = path.resolve(__dirname);
 
 // Try connecting to mongodb
 const connectWithRetry = (retries = 5, delay = 3000) => {
-    mongoose.connect(mongoUrl, {
+    mongoose.connect(process.env.DB_URI, {
         connectTimeoutMS: 1000
     })
         .then(async () => {

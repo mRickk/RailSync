@@ -5,12 +5,25 @@ import {
     get_all_reservations,
     get_reservation,
     delete_reservation,
-    get_occupied_seats
+    get_occupied_seats,
+    getSolutionLocks,
+    createLocksTimeout,
+    renewLocksTimeout
 } from '../controllers/reservationsController.js';
 
 const router = Router();
 
 router.get('/', requireAuth, requireAdmin, get_all_reservations);
+
+router.get('/lock/:solutionId',
+    // requireAuth,
+    getSolutionLocks);
+router.post('/lock/:solutionId',
+    // requireAuth,
+    createLocksTimeout); // { seat }
+router.patch('/lock/:solutionId',
+    // requireAuth,
+    renewLocksTimeout); // { seat }
 
 router.get('/:reservationId', requireAuth, requireAdminOrReservationOwner, get_reservation);
 router.delete("/:reservationId", requireAuth, requireAdminOrReservationOwner, delete_reservation);
