@@ -12,7 +12,6 @@ export const get_solutions = async function(req, res) {
         "departureTime": datetime,
         "adults": 1,
     };
-    console.log(payload);
 
     try {
         const response = await fetch("https://www.lefrecce.it/Channels.Website.BFF.WEB/website/ticket/solutions", {
@@ -25,6 +24,9 @@ export const get_solutions = async function(req, res) {
         });
 
         const data = await response.json();
+        if (!data.solutions) {
+            return res.status(200).json([]);
+        }
         const solutions = data.solutions.filter(
             sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );

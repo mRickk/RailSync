@@ -180,7 +180,6 @@ const seedDatabase = async () => {
     if (nicolas) {
       nicolas.reservations = reservations.map(r => r._id);
       await nicolas.save();
-      console.log("Linked reservations to Nicolas.");
     }
   }
 };

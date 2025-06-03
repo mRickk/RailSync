@@ -38,7 +38,11 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
     })
         .then(async () => {
             console.log('MongoDB Connected');
-            await seedDatabase();
+            
+            if (process.env.SEED_DATABASE && process.env.SEED_DATABASE === "true") {
+                console.log("Started database seeding.");
+                await seedDatabase();
+            }
         })
         .catch((err) => {
             console.error(`MongoDB connection unsuccessful, retries left: ${retries}`, err);

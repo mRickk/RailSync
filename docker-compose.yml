@@ -28,6 +28,7 @@ services:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
       DB_URI: mongodb://mongodb:27017/dbrs
+      SEED_DATABASE: "true"
     depends_on:
       - mongodb
     networks:
@@ -43,6 +44,7 @@ services:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
       DB_URI: mongodb://mongodb:27017/dbrs
+      SEED_DATABASE: "false"
     depends_on:
       - mongodb
     networks:
