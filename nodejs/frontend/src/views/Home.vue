@@ -114,9 +114,9 @@ export default {
           this.toStation,
           isoLocal
         )
-        this.results = data["solutions"]
+        this.results = data
           .map((res) => (res.solution))
-          // .filter((sol) => sol.status === "SALEABLE")
+          .filter((sol) => sol.status === "SALEABLE")
       } catch (e) {
         this.error = 'Error fetching train data'
       } finally {

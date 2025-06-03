@@ -30,10 +30,12 @@ export const get_solutions = async function(req, res) {
         );
         try {
             for (const sol of solutions) {
-                for (const node in sol.solution.nodes) {
+                for (const node of sol.solution.nodes) {
+                    console.log(node.train && node.train.acronym && node.train.name)
                     if (node.train && node.train.acronym && node.train.name) {
                         const trainId = node.train.acronym + node.train.name;
                         const existingTrain = await Train.findOne({ train_id: trainId }).exec();
+                        console.log(existingTrain)
                         if (!existingTrain) {
                             const trainCode = node.train.name;
                             const resTrainId = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/cercaNumeroTreno/${trainCode}`, {
@@ -43,7 +45,7 @@ export const get_solutions = async function(req, res) {
                                 }
                             });
                             const codLocOrig = (await resTrainId.json()).codLocOrig;
-                            const millis_departure_date = new Date(node.departureTime).setUTCHours(0, 0, 0, 0).getTime();
+                            const millis_departure_date = new Date(node.departureTime).setHours(0, 0, 0, 0);
                             const res = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/tratteCanvas/${codLocOrig}/${trainCode}/${millis_departure_date}`, {
                                 method: "GET",
                                 headers: {
@@ -87,11 +89,11 @@ export const get_solutions = async function(req, res) {
                     departure_time: new Date(node.departureTime),
                     arrival_time: new Date(node.arrivalTime),
                     train_id: node.train?.acronym + node.train?.name,
-                    millis_departure_date: new Date(node.departureTime).setUTCHours(0, 0, 0, 0).getTime(), //TODO: check
+                    millis_departure_date: new Date(node.departureTime).setHours(0, 0, 0, 0), //TODO: check
                 }))
             })), { ordered: false });
         } catch (e) {
-            // console.warn("Duplicates skipped:", e.writeErrors);
+            // console.warn("Duplicates skipped:", e);
         }
         return res.status(200).json(solutions);
     } catch (err) {
@@ -100,7 +102,7 @@ export const get_solutions = async function(req, res) {
 };
 
 function convertStationId(frecceStationId) {
-    return "S" + frecceStationId.slice(-5);
+    return "S" + String(frecceStationId).slice(-5);
 }
 
 export const get_solution = async function(req, res) {
