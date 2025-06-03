@@ -24,6 +24,9 @@ export const get_solutions = async function(req, res) {
         });
 
         const data = await response.json();
+        if (!data.solutions) {
+            return res.status(200).json([]);
+        }
         const solutions = data.solutions.filter(
             sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );

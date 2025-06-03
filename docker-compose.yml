@@ -13,12 +13,12 @@ services:
     ports:
       - 5173:5173
     depends_on:
-      - backend
+      - proxy
     networks:
       - outer
       - inner
 
-  backend:
+  backend1:
     image: backend
     build:
       context: ./nodejs/backend
@@ -28,13 +28,27 @@ services:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
       DB_URI: mongodb://mongodb:27017/dbrs
+      SEED_DATABASE: "true"
     depends_on:
       - mongodb
-    ports:
-      - 3000:3000
     networks:
       - inner
-      - outer #TODO: Remove
+
+  backend2:
+    image: backend
+    build:
+      context: ./nodejs/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      DB_URI: mongodb://mongodb:27017/dbrs
+      SEED_DATABASE: "false"
+    depends_on:
+      - mongodb
+    networks:
+      - inner
 
   # first service to start
   mongodb:
@@ -69,10 +83,24 @@ services:
       - inner
       - outer
 
+  proxy:
+    image: nginx:latest
+    ports:
+      - "3000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend1
+      - backend2
+    networks:
+      - inner
+      - outer
+
+
 networks:
   inner:
     driver: bridge
-    internal: true
+    internal: false #Impostato a false poichè i backend necessitano di accedere ad internet per le chiamate API
     driver_opts:
        com.docker.network.bridge.name: "br-inner89012"
        com.docker.network.enable_ipv6: "false"

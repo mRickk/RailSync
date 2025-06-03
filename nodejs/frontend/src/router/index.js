@@ -67,7 +67,6 @@ router.beforeEach(async(to, from, next) => {
     const authToken = localStorage.getItem('authToken');
     const isTokenAvailable = !!authToken;
     let isAuthenticated = false;
-
     if (isTokenAvailable) {
         try {
             isAuthenticated = await isTokenValid(authToken);

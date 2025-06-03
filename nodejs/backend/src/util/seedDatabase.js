@@ -4,12 +4,6 @@ import User from '../models/userModel.js';
 import Solution from '../models/solutionModel.js';
 
 const seedSolutions = async () => {
-  const count = await Solution.countDocuments();
-  if (count > 0) {
-    console.log("Solutions already present, skipping seeding.");
-    return;
-  }
-
   const seedData = [
     {
       solution_id: "SOL001",
@@ -83,18 +77,18 @@ const seedSolutions = async () => {
     },
   ];
 
-  const solutions = await Solution.insertMany(seedData);
+  for (const solution of seedData) {
+    await Solution.updateOne(
+      { solution_id: solution.solution_id },
+      { $set: solution },
+      { upsert: true }
+    );
+  }
+  
   console.log("Seeded solutions.");
-  return solutions;
 };
 
 const seedReservations = async () => {
-  const count = await Reservation.countDocuments();
-  if (count > 0) {
-    console.log("Reservations already present, skipping seeding.");
-    return;
-  }
-
   const seedData = [
     {
       solution_id: "SOL001",
@@ -124,18 +118,23 @@ const seedReservations = async () => {
     },
   ];
 
-  const reservations = await Reservation.insertMany(seedData);
+  for (const reservation of seedData) {
+    await Reservation.updateOne(
+      { solution_id: reservation.solution_id, name: reservation.name, surname: reservation.surname },
+      { $set: reservation },
+      { upsert: true }
+    );
+  }
+
+  // Recupero delle prenotazioni appena aggiunte
+  const solutionIds = seedData.map(r => r.solution_id);
+  const reservations = await Reservation.find({ solution_id: { $in: solutionIds } });
+
   console.log("Seeded reservations.");
   return reservations;
 };
 
 const seedUsers = async () => {
-  const count = await User.countDocuments();
-  if (count > 0) {
-    console.log("Users already present, skipping seeding.");
-    return;
-  }
-
   const seedUsers = [
     {
       username: "admin",
@@ -161,7 +160,13 @@ const seedUsers = async () => {
     },
   ];
 
-  await User.insertMany(seedUsers);
+  for (const user of seedUsers) {
+    await User.updateOne(
+      { username: user.username },
+      { $set: user },
+      { upsert: true }
+    );
+  }
   console.log("Seeded users.");
 };
 
@@ -175,7 +180,6 @@ const seedDatabase = async () => {
     if (nicolas) {
       nicolas.reservations = reservations.map(r => r._id);
       await nicolas.save();
-      console.log("Linked reservations to Nicolas.");
     }
   }
 };
