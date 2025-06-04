@@ -148,10 +148,12 @@ const seedReservations = async () => {
       seats: [{
         seat: "1A",
         train_id: "FR3940",
+        millis_departure_date: 1748556000000
       },
       {
         seat: "1B",
         train_id: "FR3942",
+        millis_departure_date: 1748556000000
       }],
     },
     {
@@ -161,6 +163,7 @@ const seedReservations = async () => {
       seats: [{
         seat: "2A",
         train_id: "FR9400",
+        millis_departure_date: 1748560000000
       }]
     },
   ];

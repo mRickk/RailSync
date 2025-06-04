@@ -31,29 +31,48 @@ export const get_solutions = async function(req, res) {
         try {
             for (const sol of solutions) {
                 for (const node of sol.solution.nodes) {
-                    console.log(node.train && node.train.acronym && node.train.name)
                     if (node.train && node.train.acronym && node.train.name) {
                         const trainId = node.train.acronym + node.train.name;
                         const existingTrain = await Train.findOne({ train_id: trainId }).exec();
-                        console.log(existingTrain)
                         if (!existingTrain) {
                             const trainCode = node.train.name;
-                            const resTrainId = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/cercaNumeroTreno/${trainCode}`, {
+                            // const resTrainId = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/cercaNumeroTreno/${trainCode}`, {
+                            //     method: "GET",
+                            //     headers: {
+                            //         "Accept": "application/json"
+                            //     }
+                            // });
+                            // const codLocOrig = (await resTrainId.json()).codLocOrig;
+                            const codLocOrig = node.bdoOrigin;
+                            const departureDate = new Date(node.departureTime);
+                            node.millis_departure_date = Date.UTC(
+                                departureDate.getUTCFullYear(),
+                                departureDate.getUTCMonth(),
+                                departureDate.getUTCDate()
+                            );
+                            const today_millis_departure_date = Date.UTC(
+                                new Date().getUTCFullYear(),
+                                new Date().getUTCMonth(),
+                                new Date().getUTCDate()
+                            );
+                            const res = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/tratteCanvas/${codLocOrig}/${trainCode}/${today_millis_departure_date}`, {
                                 method: "GET",
                                 headers: {
                                     "Accept": "application/json"
                                 }
                             });
-                            const codLocOrig = (await resTrainId.json()).codLocOrig;
-                            const millis_departure_date = new Date(node.departureTime).setHours(0, 0, 0, 0);
-                            const res = await fetch(`http://www.viaggiatreno.it/infomobilitamobile/resteasy/viaggiatreno/tratteCanvas/${codLocOrig}/${trainCode}/${millis_departure_date}`, {
-                                method: "GET",
-                                headers: {
-                                    "Accept": "application/json"
-                                }
-                            });
-                            const stations = await res.json();
-                            await Train.insertOne({
+                            if (!res.ok) {
+                                console.warn(`Failed to fetch train data with code=${trainCode}  codLocOrig=${codLocOrig}  today_millis_departure_date=${today_millis_departure_date}`);
+                                continue;
+                            }
+                            const text = await res.text();
+                            if (text.trim() === "") {
+                                console.warn(`Empty JSON response for train:  code=${trainCode}  codLocOrig=${codLocOrig}  today_millis_departure_date=${today_millis_departure_date}`);
+                                console.log("Actual departure date:", departureDate);
+                                continue;
+                            }
+                            const stations = JSON.parse(text);
+                            await Train.create({
                                 train_id: trainId,
                                 denomination: node.train.denomination,
                                 code: trainCode,
@@ -61,7 +80,7 @@ export const get_solutions = async function(req, res) {
                                     station_id: station.id,
                                     name: station.stazione
                                 }))
-                            }, { ordered: false });
+                            });
                         }
                     }
                 }
@@ -83,13 +102,13 @@ export const get_solutions = async function(req, res) {
                 price_amount: sol.solution.price?.amount,
                 nodes: sol.solution.nodes?.map(node => ({
                     origin: node.origin,
-                    origin_id: convertStationId(node.originId),
+                    origin_id: convertStationId(fromStationId),
                     destination: node.destination,
-                    destination_id: convertStationId(node.destinationId),
+                    destination_id: convertStationId(toStationId),
                     departure_time: new Date(node.departureTime),
                     arrival_time: new Date(node.arrivalTime),
                     train_id: node.train?.acronym + node.train?.name,
-                    millis_departure_date: new Date(node.departureTime).setHours(0, 0, 0, 0), //TODO: check
+                    millis_departure_date: node.millis_departure_date, //TODO: check
                 }))
             })), { ordered: false });
         } catch (e) {

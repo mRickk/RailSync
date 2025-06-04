@@ -10,7 +10,7 @@ const route = useRoute();
 const solutionId = computed(() => route.params.solution_id);
 const solution = ref(null);
 const occupiedSeats = ref({});
-const trains = computed(() => solution.value?.nodes.map(node => node.train) || []);
+const trains = computed(() => solution.value?.nodes.map(node => node.train_id) || []);
 const currentTrainIdx = ref(0);
 
 interface Seat {
@@ -28,7 +28,7 @@ const generateSeatLayouts = () => {
   seatLayouts.length = 0;
   for (let t = 0; t < trains.value.length; t++) {
     const train_id = trains.value[t];
-    const occupied = Array.from(occupiedSeats.value.find(s => s.train_id === train_id).seats) || [];
+    const occupied = occupiedSeats.value[train_id][solution.value.nodes[t].millis_departure_date] || [];
     const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
@@ -107,8 +107,9 @@ const completeReservation = async () => {
 
   try {
     const seats = trains.value.map((train, idx) => ({
-      train_id: train,
       seat: selectedSeats.value[idx],
+      train_id: train,
+      millis_departure_date: solution.value.nodes[idx].millis_departure_date,
     }));
 
     await bookSeat({
@@ -136,6 +137,7 @@ onMounted(async () => {
       throw new Error('Solution not found');
     }
     occupiedSeats.value = await getOccupiedSeats(solutionId.value);
+    console.log('Occupied seats:', occupiedSeats.value);
     generateSeatLayouts();
     fetchUserInfo();
   } catch (error) {
@@ -157,7 +159,7 @@ onMounted(async () => {
           &lt; Previous Train
         </button>
         <span>
-          Train {{ currentTrainIdx + 1 }}: {{ trains[currentTrainIdx]?.train_id }}
+          Train {{ currentTrainIdx + 1 }}: {{ trains[currentTrainIdx] || 'N/A' }}
         </span>
         <button class="btn btn-secondary" @click="switchTrain('next')" :disabled="currentTrainIdx === trains.length - 1">
           Next Train &gt;
