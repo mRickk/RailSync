@@ -26,7 +26,7 @@
       >
     </b-card-text>
 
-    <a href="#" class="card-link">View details</a>
+    <!-- <a href="#" class="card-link">View details</a> -->
   </b-card>
 </template>
 

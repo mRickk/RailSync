@@ -30,7 +30,6 @@ export const get_solutions = async function(req, res) {
         const solutions = data.solutions.filter(
             sol => sol.solution.status === "SALEABLE" && sol.solution.price !== null && sol.solution.price.amount !== null && sol.solution.price.amount > 0
         );
-
         try {
             await Solution.insertMany(solutions.map(sol => ({
                 solution_id: sol.solution.origin + "|" + sol.solution.destination + "|" + (new Date(sol.solution.departureTime).toISOString()) + "|" + (new Date(sol.solution.arrivalTime).toISOString()) + "|" + sol.solution.price?.amount,
@@ -50,14 +49,15 @@ export const get_solutions = async function(req, res) {
                     train: {
                         train_id: node.train?.acronym + node.train?.name,
                         denomination: node.train?.denomination,
-                        name: node.train?.name
+                        code: node.train?.name,
                     }
+                    
                 }))
             })), { ordered: false });
         } catch (e) {
-            // console.warn("Duplicates skipped:", e.writeErrors);
+            // console.warn("Duplicates skipped:", e);
         }
-        return res.status(200).json(data);
+        return res.status(200).json(solutions);
     } catch (err) {
         return res.status(500).json({ message: err.message });
     }

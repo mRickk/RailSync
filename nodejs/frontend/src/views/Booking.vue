@@ -10,7 +10,7 @@ const route = useRoute();
 const solutionId = computed(() => route.params.solution_id);
 const solution = ref(null);
 const occupiedSeats = ref({});
-const trains = computed(() => solution.value?.nodes.map(node => node.train) || []);
+const trains = computed(() => solution.value?.nodes.map(node => node.train.train_id) || []);
 const currentTrainIdx = ref(0);
 
 interface Seat {
@@ -20,15 +20,14 @@ interface Seat {
 }
 
 const rows = 12;
-const seatsPerRow = 4;
+const seatsPerRow = 4; // A, B, C, D
 const seatLayouts = reactive<Seat[][][]>([]); // [train][row][seat]
 const selectedSeats = ref<(string | null)[]>([]); // [trainIdx] = seatId
 
 const generateSeatLayouts = () => {
   seatLayouts.length = 0;
-  for (let t = 0; t < trains.value.length; t++) {
-    const train = trains.value[t];
-    const occupied = Array.from(occupiedSeats.value.find(s => s.train_id === train.train_id).seats) || [];
+  for (const train_id of trains.value) {
+    const occupied = occupiedSeats.value[train_id] || [];
     const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
@@ -107,8 +106,10 @@ const completeReservation = async () => {
 
   try {
     const seats = trains.value.map((train, idx) => ({
-      train_id: train.train_id,
       seat: selectedSeats.value[idx],
+      train_id: train,
+      departure_time: solution.value.nodes[idx].departure_time,
+      arrival_time: solution.value.nodes[idx].arrival_time,
     }));
 
     await bookSeat({
@@ -136,6 +137,7 @@ onMounted(async () => {
       throw new Error('Solution not found');
     }
     occupiedSeats.value = await getOccupiedSeats(solutionId.value);
+    console.log('Occupied seats:', occupiedSeats.value);
     generateSeatLayouts();
     fetchUserInfo();
   } catch (error) {
@@ -157,7 +159,7 @@ onMounted(async () => {
           &lt; Previous Train
         </button>
         <span>
-          Train {{ currentTrainIdx + 1 }}: {{ trains[currentTrainIdx]?.train_id }}
+          Train {{ currentTrainIdx + 1 }}: {{ trains[currentTrainIdx] || 'N/A' }}
         </span>
         <button class="btn btn-secondary" @click="switchTrain('next')" :disabled="currentTrainIdx === trains.length - 1">
           Next Train &gt;
@@ -186,8 +188,8 @@ onMounted(async () => {
     <section class="selected-seats-section" v-if="trains.length > 1">
       <h3>Selected Seats for All Trains</h3>
       <ul>
-        <li v-for="(train, idx) in trains" :key="train.train_id">
-          {{ train.train_id }}: <strong>{{ selectedSeats[idx] || 'None' }}</strong>
+        <li v-for="(train, idx) in trains" :key="train">
+          {{ train }}: <strong>{{ selectedSeats[idx] || 'None' }}</strong>
         </li>
       </ul>
     </section>
