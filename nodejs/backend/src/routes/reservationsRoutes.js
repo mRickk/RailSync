@@ -1,28 +1,36 @@
 import { Router } from 'express';
-import { requireAuth, requireAdmin, requireAdminOrReservationOwner } from '../util/authMiddleware.js';
+
+import {
+    requireAuth,
+    requireAdmin,
+    requireAdminOrReservationOwner
+} from '../util/authMiddleware.js';
 
 import {
     get_all_reservations,
     get_reservation,
     delete_reservation,
-    get_occupied_seats,
+    get_occupied_seats
+} from '../controllers/reservationsController.js';
+
+import {
     getSolutionLocks,
     createLocksTimeout,
     renewLocksTimeout
-} from '../controllers/reservationsController.js';
+} from '../controllers/redisController.js';
 
 const router = Router();
 
 router.get('/', requireAuth, requireAdmin, get_all_reservations);
 
 router.get('/lock/:solutionId',
-    // requireAuth,
+    requireAuth,
     getSolutionLocks);
 router.post('/lock/:solutionId',
-    // requireAuth,
+    requireAuth,
     createLocksTimeout); // { seat }
 router.patch('/lock/:solutionId',
-    // requireAuth,
+    requireAuth,
     renewLocksTimeout); // { seat }
 
 router.get('/:reservationId', requireAuth, requireAdminOrReservationOwner, get_reservation);
