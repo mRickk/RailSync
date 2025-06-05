@@ -27,7 +27,7 @@ services:
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
-      DB_URI: mongodb://mongodb:27017/dbrs
+      DB_URI: mongodb://mongodb:27017,mongo-secondary:27017/dbrs?replicaSet=rs0&readPreference=primaryPreferred
       SEED_DATABASE: "true"
     depends_on:
       - mongodb
@@ -43,29 +43,63 @@ services:
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
-      DB_URI: mongodb://mongodb:27017/dbrs
+      DB_URI: mongodb://mongodb:27017,mongo-secondary:27017/dbrs?replicaSet=rs0&readPreference=primaryPreferred
       SEED_DATABASE: "false"
     depends_on:
       - mongodb
     networks:
       - inner
-
-  # first service to start
+  
   mongodb:
     build:
       context: ./mongodb
       dockerfile: Dockerfile
     image: mymongo
-    #command to be executed after execution initialized
-    command: [ "docker-entrypoint.sh", "mongod" ]
+    command: [ "mongod", "--replSet", "rs0" ]
     restart: always
     healthcheck:
       test: |
         host=`hostname --ip-address || echo '127.0.0.1'`;
-        mongo --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
+        mongosh --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'
       interval: 5s
+      timeout: 10s
+      retries: 5
     networks:
       - inner
+
+  mongo-secondary:
+    image: mymongo
+    command: [ "mongod", "--replSet", "rs0" ]
+    restart: always
+    healthcheck:
+      test: |
+        host=`hostname --ip-address || echo '127.0.0.1'`;
+        mongosh --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - inner
+
+  mongo-arbiter:
+    image: mymongo
+    container_name: mongo-arbiter
+    networks:
+      - inner
+    command: mongod --replSet rs0 --port 27017 --bind_ip_all
+
+
+  mongo-init:
+    image: mymongo
+    depends_on:
+      - mongodb
+      - mongo-secondary
+    volumes:
+      - ./mongodb/init-replica.sh:/init-replica.sh
+    entrypoint: [ "bash", "/init-replica.sh" ]
+    networks:
+      - inner
+
 
   #TODO: Comment out because only used for debug reasons
   mongoexpress:
