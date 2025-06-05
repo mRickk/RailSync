@@ -10,7 +10,7 @@ const route = useRoute();
 const solutionId = computed(() => route.params.solution_id);
 const solution = ref(null);
 const occupiedSeats = ref({});
-const trains = computed(() => solution.value?.nodes.map(node => node.train_id) || []);
+const trains = computed(() => solution.value?.nodes.map(node => node.train.train_id) || []);
 const currentTrainIdx = ref(0);
 
 interface Seat {
@@ -20,15 +20,14 @@ interface Seat {
 }
 
 const rows = 12;
-const seatsPerRow = 4;
+const seatsPerRow = 4; // A, B, C, D
 const seatLayouts = reactive<Seat[][][]>([]); // [train][row][seat]
 const selectedSeats = ref<(string | null)[]>([]); // [trainIdx] = seatId
 
 const generateSeatLayouts = () => {
   seatLayouts.length = 0;
-  for (let t = 0; t < trains.value.length; t++) {
-    const train_id = trains.value[t];
-    const occupied = occupiedSeats.value[train_id][solution.value.nodes[t].millis_departure_date] || [];
+  for (const train_id of trains.value) {
+    const occupied = occupiedSeats.value[train_id] || [];
     const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
@@ -109,7 +108,8 @@ const completeReservation = async () => {
     const seats = trains.value.map((train, idx) => ({
       seat: selectedSeats.value[idx],
       train_id: train,
-      millis_departure_date: solution.value.nodes[idx].millis_departure_date,
+      departure_time: solution.value.nodes[idx].departure_time,
+      arrival_time: solution.value.nodes[idx].arrival_time,
     }));
 
     await bookSeat({

@@ -8,7 +8,8 @@ var ReservationSchema = new Schema({
     seats: [{ 
         seat: {type: String, required: true },
         train_id: { type: String, required: true },
-        millis_departure_date: { type: Number, required: true},
+        departure_time: { type: Date, required: true },
+        arrival_time: { type: Date, required: true },
     }],
     reservation_date: { type: Date, default: Date.now },
 });
