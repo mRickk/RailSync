@@ -102,12 +102,12 @@ export async function authenticate(username, password) {
         body: JSON.stringify({ username, password }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Unknown error');
+        throw new Error(data.message || 'Unknown error');
     }
 
-    const data = await response.json();
     localStorage.setItem('authToken', data.token);
     localStorage.setItem('id', data.id);
     localStorage.setItem('is_admin', data.is_admin);

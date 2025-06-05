@@ -52,6 +52,7 @@ services:
     environment:
       DB_URI: mongodb://mongodb:27017/dbrs
       SEED_DATABASE: "false"
+      REDIS_URL: "redis://redis:6379"
     depends_on:
       - mongodb
       - redis

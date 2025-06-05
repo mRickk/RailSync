@@ -14,24 +14,24 @@ import {
 } from '../controllers/reservationsController.js';
 
 import {
-    getSolutionLocks,
-    createLocksTimeout,
-    renewLocksTimeout
+    getSelectedSeats,
+    createOrRenewLock,
+    deleteLock
 } from '../controllers/redisController.js';
 
 const router = Router();
 
 router.get('/', requireAuth, requireAdmin, get_all_reservations);
 
-router.get('/lock/:solutionId',
+router.get('/:solutionId/selectedSeats',
     requireAuth,
-    getSolutionLocks);
-router.post('/lock/:solutionId',
+    getSelectedSeats);
+router.post('/:solutionId/select',
     requireAuth,
-    createLocksTimeout); // { seat }
-router.patch('/lock/:solutionId',
+    createOrRenewLock); // { trainId, seat }
+router.delete('/:solutionId/unselect/:trainId/:seat',
     requireAuth,
-    renewLocksTimeout); // { seat }
+    deleteLock);
 
 router.get('/:reservationId', requireAuth, requireAdminOrReservationOwner, get_reservation);
 router.delete("/:reservationId", requireAuth, requireAdminOrReservationOwner, delete_reservation);

@@ -30,12 +30,12 @@ export async function bookSeat(reservationBody) {
         throw new Error("Id not found");
     }
     const response = await fetch(`${API_BASE_URL}/users/${localStorage.getItem("id")}/reservations`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-          },
-          body: JSON.stringify(reservationBody),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify(reservationBody),
     });
 
     if (!response.ok) {
@@ -61,6 +61,71 @@ export async function getOccupiedSeats(solutionId) {
     }
 
     return await response.json();
+}
+
+export async function getSelectedSeats(solutionId) {
+    if (localStorage.getItem("authToken") === null) {
+        throw new Error("User not authenticated");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/reservations/${solutionId}/selectedSeats`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Unknown error');
+    }
+
+    return await response.json();
+}
+
+export async function selectSeat(solutionId, trainId, seat) {
+    if (localStorage.getItem("authToken") === null) {
+        throw new Error("User not authenticated");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/reservations/${solutionId}/select`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({
+            trainId: trainId,
+            seat: seat
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Unknown error');
+    }
+
+    return await response.json();
+}
+
+export async function unselectSeat(solutionId, trainId, seat) {
+    if (localStorage.getItem("authToken") === null) {
+        throw new Error("User not authenticated");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/reservations/${solutionId}/unselect/${trainId}/${seat}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Unknown error');
+    }
 }
 
 export async function deleteReservation(reservationId) {

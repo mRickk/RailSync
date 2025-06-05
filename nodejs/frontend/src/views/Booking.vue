@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { getUser } from '@/api/users.js';
 import { getSolution } from '@/api/solutions.js';
-import { bookSeat, getOccupiedSeats } from '@/api/reservations.js';
+import { bookSeat, getOccupiedSeats, getSelectedSeats, selectSeat, unselectSeat } from '@/api/reservations.js';
+
+type TrainSeatsMap = Record<string, Set<string>>;
 
 const router = useRouter();
 const route = useRoute();
 const solutionId = computed(() => route.params.solution_id);
 const solution = ref(null);
 const occupiedSeats = ref({});
+
 const trains = computed(() => solution.value?.nodes.map(node => node.train) || []);
 const currentTrainIdx = ref(0);
 
@@ -21,42 +24,79 @@ interface Seat {
 
 const rows = 12;
 const seatsPerRow = 4;
+const REFRESH_INTERVAL = 100;
 const seatLayouts = reactive<Seat[][][]>([]); // [train][row][seat]
 const selectedSeats = ref<(string | null)[]>([]); // [trainIdx] = seatId
 
-const generateSeatLayouts = () => {
+let refreshIntervalId: number | undefined;
+
+const mergeOccupiedAndLockedSeats = (occupied: any[], locked: any[]) => {
+  const map: TrainSeatsMap = {};
+
+  for (const entry of occupied) {
+    map[entry.train_id] = new Set(entry.seats);
+  }
+
+  for (const entry of locked) {
+    if (!map[entry.train_id]) {
+      map[entry.train_id] = new Set();
+    }
+    for (const seat of entry.seats) {
+      map[entry.train_id].add(seat);
+    }
+  }
+
+  return map;
+};
+
+const generateSeatLayouts = (occupiedMap: TrainSeatsMap) => {
   seatLayouts.length = 0;
+
   for (let t = 0; t < trains.value.length; t++) {
     const train = trains.value[t];
-    const occupied = Array.from(occupiedSeats.value.find(s => s.train_id === train.train_id).seats) || [];
+    const trainId = train.train_id;
+    const occupied = occupiedMap[trainId] || new Set();
+
     const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
       const labels = ['A', 'B', 'C', 'D'];
       for (let c = 0; c < seatsPerRow; c++) {
         const seatId = `${r + 1}${labels[c]}`;
+
+        let status = 'available';
+        if (selectedSeats.value[t] && selectedSeats.value[t] === seatId){
+          status = 'selected';
+        } else if (occupied.has(seatId)) {
+          status = 'occupied';
+        }
+
         row.push({
           id: seatId,
           label: seatId,
-          status: occupied.includes(seatId) ? 'occupied' : 'available',
+          status: status,
         });
       }
       layout.push(row);
     }
     seatLayouts.push(layout);
   }
-  selectedSeats.value = Array(trains.value.length).fill(null);
 };
 
-const handleSeatClick = (seat: Seat) => {
+
+const handleSeatClick = async (seat: Seat) => {
   if (seat.status === 'occupied') return;
   const prevSeatId = selectedSeats.value[currentTrainIdx.value];
   if (prevSeatId) {
     const prevSeat = findSeatById(currentTrainIdx.value, prevSeatId);
-    if (prevSeat) prevSeat.status = 'available';
+    if (prevSeat) {
+      prevSeat.status = 'available';
+      await unselectSeat(solutionId.value, trains.value[currentTrainIdx.value].train_id, prevSeatId);
+    }
   }
   selectedSeats.value[currentTrainIdx.value] = seat.id;
   seat.status = 'selected';
+  await selectSeat(solutionId.value, trains.value[currentTrainIdx.value].train_id, seat.id);
 };
 
 const findSeatById = (trainIdx: number, id: string): Seat | undefined => {
@@ -132,17 +172,53 @@ const cancelReservation = () => {
 onMounted(async () => {
   try {
     solution.value = await getSolution(solutionId.value);
-    if (!solution.value) {
-      throw new Error('Solution not found');
-    }
-    occupiedSeats.value = await getOccupiedSeats(solutionId.value);
-    generateSeatLayouts();
+    if (!solution.value) throw new Error('Solution not found');
+
+    const [occupied, locked] = await Promise.all([
+      getOccupiedSeats(solutionId.value),
+      getSelectedSeats(solutionId.value),
+    ]);
+
+    const merged = mergeOccupiedAndLockedSeats(occupied, locked);
+    generateSeatLayouts(merged);
+
+    selectedSeats.value = Array(trains.value.length).fill(null);
     fetchUserInfo();
+
+    refreshIntervalId = window.setInterval(async () => {
+      try {
+        // Ottieni posti occupati e selezionati aggiornati
+        const [newOccupied, newLocked] = await Promise.all([
+          getOccupiedSeats(solutionId.value),
+          getSelectedSeats(solutionId.value),
+        ]);
+        
+        const updatedMerged = mergeOccupiedAndLockedSeats(newOccupied, newLocked);
+        console.log(newOccupied, newLocked);
+        console.log(updatedMerged);
+        generateSeatLayouts(updatedMerged);
+
+        // Rinnova la lock per i posti selezionati
+        for (let t = 0; t < trains.value.length; t++) {
+          const selectedSeatId = selectedSeats.value[t];
+          if (selectedSeatId) {
+            await selectSeat(solutionId.value, trains.value[t].train_id, selectedSeatId);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to refresh seat data:', error);
+      }
+    }, REFRESH_INTERVAL);
+
   } catch (error) {
     console.error('Failed to load booking data:', error);
     router.push('/home');
-    return;
   }
+});
+
+
+onUnmounted(() => {
+  if (refreshIntervalId) clearInterval(refreshIntervalId);
 });
 </script>
 
