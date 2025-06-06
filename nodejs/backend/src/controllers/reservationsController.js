@@ -89,41 +89,6 @@ export const get_all_reservations = async function(req, res) {
     }
 }
 
-// export const get_occupied_seats = async function(req, res) {
-//     try {
-//         const solutionId = req.params.solutionId;
-//         if (!solutionId) {
-//             return res.status(400).json({ message: "Solution ID is required" });
-//         }
-//         const solution = await Solution.findOne({ solution_id: solutionId }).exec();
-//         if (!solution) {
-//             return res.status(404).json({ message: "Solution not found" });
-//         }
-//         const trainsToOccupiedSeats = {};
-//         for (const node of solution.nodes) {
-//             const trainId = node.train.train_id;
-//             const depTime = new Date(node.departure_time).getTime();
-//             const arrTime = new Date(node.arrival_time).getTime();
-//             const occupiedSeats = (await Reservation.find({
-//                     seats: { $elemMatch: { train_id: trainId } }
-//                 }).exec())
-//                 .map(res => res.seats)
-//                 .filter(s => s.train_id === trainId)
-//                 .filter(s => {
-//                     const seatDepTime = new Date(s.departure_time).getTime();
-//                     const seatArrTime = new Date(s.arrival_time).getTime();
-//                     console.log(`seatDepTime: ${seatDepTime}, depTime: ${depTime}, seatArrTime: ${seatArrTime}, arrTime: ${arrTime}`);
-//                     return (seatDepTime <= depTime && seatArrTime > depTime) ||
-//                         (seatDepTime >= depTime && seatDepTime < arrTime)
-//                 });
-//             trainsToOccupiedSeats[trainId] = occupiedSeats.flat().map(s => s.seat);
-//         }
-//         return res.status(200).json(trainsToOccupiedSeats);
-//     } catch (err) {
-//         return res.status(500).json({ message: err.message });
-//     }
-// }
-
 export const get_occupied_seats = async function(req, res) {
     try {
         const solutionId = req.params.solutionId;

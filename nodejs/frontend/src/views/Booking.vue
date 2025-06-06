@@ -191,8 +191,6 @@ onMounted(async () => {
         ]);
         
         const updatedMerged = mergeOccupiedAndLockedSeats(newOccupied, newLocked);
-        console.log(newOccupied, newLocked);
-        console.log(updatedMerged);
         generateSeatLayouts(updatedMerged);
 
         // Rinnova la lock per i posti selezionati
