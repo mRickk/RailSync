@@ -18,7 +18,7 @@ const currentTrainIdx = ref(0);
 interface Seat {
   id: string;
   label: string;
-  status: 'available' | 'selected' | 'occupied';
+  status: string;
 }
 
 const rows = 12;
@@ -29,19 +29,22 @@ const selectedSeats = ref<(string | null)[]>([]); // [trainIdx] = seatId
 
 let refreshIntervalId: number | undefined;
 
-const mergeOccupiedAndLockedSeats = (occupied: any[], locked: any[]) => {
+const mergeOccupiedAndLockedSeats = (
+  occupied: Record<string, string[]>,
+  locked: Record<string, string[]>
+): TrainSeatsMap => {
   const map: TrainSeatsMap = {};
 
-  for (const entry of occupied) {
-    map[entry.train_id] = new Set(entry.seats);
+  for (const trainId in occupied) {
+    map[trainId] = new Set(occupied[trainId]);
   }
 
-  for (const entry of locked) {
-    if (!map[entry.train_id]) {
-      map[entry.train_id] = new Set();
+  for (const trainId in locked) {
+    if (!map[trainId]) {
+      map[trainId] = new Set();
     }
-    for (const seat of entry.seats) {
-      map[entry.train_id].add(seat);
+    for (const seat of locked[trainId]) {
+      map[trainId].add(seat);
     }
   }
 
@@ -50,8 +53,9 @@ const mergeOccupiedAndLockedSeats = (occupied: any[], locked: any[]) => {
 
 const generateSeatLayouts = (occupiedMap: TrainSeatsMap) => {
   seatLayouts.length = 0;
-  for (const train_id of trains.value) {
-    const occupied = occupiedSeats.value[train_id] || [];
+  for (let t = 0; t < trains.value.length; t++) {
+    const train_id = trains.value[t];
+    const occupied = occupiedMap[train_id] || new Set<string>();
     const layout: Seat[][] = [];
     for (let r = 0; r < rows; r++) {
       const row: Seat[] = [];
@@ -59,11 +63,11 @@ const generateSeatLayouts = (occupiedMap: TrainSeatsMap) => {
       for (let c = 0; c < seatsPerRow; c++) {
         const seatId = `${r + 1}${labels[c]}`;
 
-        let status = 'available';
+        let status = "available";
         if (selectedSeats.value[t] && selectedSeats.value[t] === seatId){
-          status = 'selected';
+          status = "selected";
         } else if (occupied.has(seatId)) {
-          status = 'occupied';
+          status = "occupied";
         }
 
         row.push({
@@ -86,12 +90,12 @@ const handleSeatClick = async (seat: Seat) => {
     const prevSeat = findSeatById(currentTrainIdx.value, prevSeatId);
     if (prevSeat) {
       prevSeat.status = 'available';
-      await unselectSeat(solutionId.value, trains.value[currentTrainIdx.value].train_id, prevSeatId);
+      await unselectSeat(solutionId.value, trains.value[currentTrainIdx.value], prevSeatId);
     }
   }
   selectedSeats.value[currentTrainIdx.value] = seat.id;
   seat.status = 'selected';
-  await selectSeat(solutionId.value, trains.value[currentTrainIdx.value].train_id, seat.id);
+  await selectSeat(solutionId.value, trains.value[currentTrainIdx.value], seat.id);
 };
 
 const findSeatById = (trainIdx: number, id: string): Seat | undefined => {
@@ -189,6 +193,8 @@ onMounted(async () => {
           getOccupiedSeats(solutionId.value),
           getSelectedSeats(solutionId.value),
         ]);
+        console.log(newOccupied);
+        console.log(newLocked);
         
         const updatedMerged = mergeOccupiedAndLockedSeats(newOccupied, newLocked);
         generateSeatLayouts(updatedMerged);
@@ -197,7 +203,7 @@ onMounted(async () => {
         for (let t = 0; t < trains.value.length; t++) {
           const selectedSeatId = selectedSeats.value[t];
           if (selectedSeatId) {
-            await selectSeat(solutionId.value, trains.value[t].train_id, selectedSeatId);
+            await selectSeat(solutionId.value, trains.value[t], selectedSeatId);
           }
         }
       } catch (error) {
