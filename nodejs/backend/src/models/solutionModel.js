@@ -19,7 +19,7 @@ var SolutionSchema = new Schema({
         train: {
             train_id: { type: String, required: true },
             denomination: { type: String, required: true },
-            name: { type: String, required: true }
+            code: { type: String, required: true },
         }
     }]
 });

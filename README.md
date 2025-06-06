@@ -35,13 +35,6 @@ This project uses **Git Flow** with the default settings.
 - `support/*`: maintenance of legacy versions
 - `bugfix/*`: minor bug fixes
 
-Grazie, ho ora tutte le informazioni necessarie. Di seguito ti propongo la **documentazione in Markdown** delle API del tuo sistema di acquisto treni, suddivisa per prefisso di endpoint (`/api/users`, `/api/reservations`, ecc.), con:
-
-* Metodo e path
-* Descrizione
-* Middleware richiesto (chi può accedere)
-* Status code e messaggi associati
-
 ## 📘 API Documentation - Train Ticketing Backend
 
 ### `/api/users`

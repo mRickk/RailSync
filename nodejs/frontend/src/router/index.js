@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isTokenValid } from '@/api/auth';
+import { isTokenValid } from '@/api/auth.js';
 
 import Login from '@/views/Login.vue';
 import Home from '@/views/Home.vue';
@@ -67,7 +67,6 @@ router.beforeEach(async(to, from, next) => {
     const authToken = localStorage.getItem('authToken');
     const isTokenAvailable = !!authToken;
     let isAuthenticated = false;
-
     if (isTokenAvailable) {
         try {
             isAuthenticated = await isTokenValid(authToken);
