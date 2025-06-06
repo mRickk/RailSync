@@ -2,22 +2,6 @@ import Reservation from '../models/reservationModel.js';
 import User from '../models/userModel.js';
 import Solution from '../models/solutionModel.js';
 
-// export const search_reservations = async function(req, res) {
-// 	try {
-// 		const query = {};
-
-// 		if (req.query.origin) query.origin = req.query.origin;
-//         if (req.query.destination) query.destination = req.query.destination;
-//         if (req.query.status) query.status = req.query.status;
-
-// 		const reservations = await Reservation.find(query).exec();
-
-// 		return res.status(200).json(reservations);
-// 	} catch (error) {
-// 		return res.status(500).json({ message: error.message });
-// 	}
-// }
-
 export const get_reservation = async function(req, res) {
     try {
         const id = req.params.reservationId;

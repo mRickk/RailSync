@@ -10,8 +10,6 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const mongoUrl = 'mongodb://mongodb:27017/dbrs';
-
 const app = express();
 
 const corsOptions = {
@@ -27,18 +25,19 @@ app.options('*', cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(
+    import.meta.url);
 const __dirname = path.dirname(__filename);
 global.appRoot = path.resolve(__dirname);
 
 // Try connecting to mongodb
 const connectWithRetry = (retries = 5, delay = 3000) => {
-    mongoose.connect(mongoUrl, {
-        connectTimeoutMS: 1000
-    })
-        .then(async () => {
+    mongoose.connect(process.env.DB_URI, {
+            connectTimeoutMS: 1000
+        })
+        .then(async() => {
             console.log('MongoDB Connected');
-            
+
             if (process.env.SEED_DATABASE && process.env.SEED_DATABASE === "true") {
                 console.log("Started database seeding.");
                 await seedDatabase();
@@ -57,7 +56,7 @@ const connectWithRetry = (retries = 5, delay = 3000) => {
         });
 };
 connectWithRetry();
-  
+
 app.use('/api/users', usersRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/stations', stationsRoutes);
