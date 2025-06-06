@@ -28,7 +28,6 @@ services:
       - inner
 
   backend1:
-    image: backend
     build:
       context: ./nodejs/backend
       dockerfile: Dockerfile
@@ -46,7 +45,6 @@ services:
       - inner
 
   backend2:
-    image: backend
     build:
       context: ./nodejs/backend
       dockerfile: Dockerfile
