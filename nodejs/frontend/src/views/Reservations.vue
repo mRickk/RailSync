@@ -16,6 +16,7 @@
 
 <script>
 import ReservationCard from '@/components/ReservationCard.vue';
+import { API_BASE_URL } from '@/utils/constants.js';
 
 export default {
   name: "Reservations",
@@ -32,7 +33,7 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const res = await fetch(`http://localhost:3000/api/users/${localStorage.getItem("id")}/reservations`, {
+        const res = await fetch(`${API_BASE_URL}/users/${localStorage.getItem("id")}/reservations`, {
             headers: { 
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${localStorage.getItem("authToken")}`

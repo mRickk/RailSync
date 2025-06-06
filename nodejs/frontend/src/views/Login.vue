@@ -26,7 +26,7 @@ async function login() {
     router.push({ path: '/home' });
 
   } catch (error) {
-    loginError.value = 'Login failed: ' + (error as Error).message; //TODO: remove error message
+    loginError.value = 'Login failed: ' + (error as Error).message;
   } finally {
     loginInProgress.value = false;
   }

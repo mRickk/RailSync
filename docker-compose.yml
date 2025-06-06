@@ -4,8 +4,6 @@ services:
     image: redis:7-alpine
     container_name: redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     networks:
       - inner
 
@@ -112,7 +110,7 @@ services:
       - inner
 
 
-  #TODO: Comment out because only used for debug reasons
+  #Comment out because only used for debug reasons
   mongoexpress:
     image: mongo-express
     environment:
@@ -122,8 +120,6 @@ services:
     restart: always
     ports:
       - "8082:8081"
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
     networks:
       - inner
       - outer

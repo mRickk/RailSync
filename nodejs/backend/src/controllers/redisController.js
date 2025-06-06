@@ -18,12 +18,7 @@ export const getSelectedSeats = async function(req, res) {
             seatMap[trainId].push(seatNumber);
         });
 
-        const lockedSeats = Object.entries(seatMap).map(([trainId, seats]) => ({
-            train_id: trainId,
-            seats
-        })); //La struttura è un array di oggetti { trainId: str, seats: [str, str] }
-
-        res.status(200).json(lockedSeats);
+        res.status(200).json(seatMap);
     } catch (err) {
         return res.status(500).json({ message: err.message });
     }

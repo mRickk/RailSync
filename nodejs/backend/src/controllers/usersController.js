@@ -162,7 +162,7 @@ export const create_user = async function(req, res) {
     try {
         const user = req.body;
         user.is_admin = false;
-        user.password = await hash(user.password); //TODO: check se da mettere nel fronted
+        user.password = await hash(user.password);
 
         const isUsernameAlreadyPresent = await User.findOne({ username: req.body.username }).exec();
         const isEmailAlreadyPresent = await User.findOne({ email: req.body.email }).exec();
