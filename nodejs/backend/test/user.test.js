@@ -2,7 +2,8 @@ import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
 
-export const user_url = '/api/users/';
+const reservation_url = '/api/reservations/';
+const user_url = '/api/users/';
 const default_username = 'testuser';
 const default_email = 'testuser@example.com';
 let admin_token;
@@ -249,6 +250,10 @@ describe('User API', () => {
     expect(Array.isArray(getRes.body)).toBe(true);
     expect(getRes.body.length).toBe(1);
     expect(getRes.body[0].sol.solution_id).toEqual(default_solution_id);
+
+    const deleteRes = await request(app)
+      .delete(reservation_url + postRes.body._id)
+      .set('Authorization', 'Bearer ' + admin_token);
   });
 
   it('should validate a correct token', async () => {
