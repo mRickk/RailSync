@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 export const user_url = '/api/users/';
 const default_username = 'testuser';
+const default_email = 'testuser@example.com';
 let admin_token;
 
 export const getAdminToken = async () => {
@@ -17,28 +18,10 @@ export const getAdminToken = async () => {
   return res.body.token;
 }
 
-beforeAll(async () => {
-  const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
-  await mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
-  admin_token = await getAdminToken();
-});
-
-afterEach(async () => {
-  await deleteTestUser();
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
-});
-
 export const createTestUser = async (
   username = default_username,
   password = 'securepassword',
-  email = 'test@example.com',
+  email = default_email,
   first_name = 'Test',
   last_name = 'User'
 ) => {
@@ -71,6 +54,21 @@ export const deleteTestUser = async () => {
 };
 
 describe('User API', () => {
+  beforeAll(async () => {
+    const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
+    await mongoose.connect(mongoUri);
+
+    admin_token = await getAdminToken();
+  });
+
+  afterEach(async () => {
+    await deleteTestUser();
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+  });
+
   it('should authenticate an existing user', async () => {
     await createTestUser();
     const res = await request(app)
@@ -153,7 +151,7 @@ describe('User API', () => {
     const res = await createTestUser(
       'uniqueuser',
       'anotherpassword',
-      'test@example.com',
+      default_email,
       'Another',
       'User'
     );

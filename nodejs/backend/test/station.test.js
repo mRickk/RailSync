@@ -4,20 +4,17 @@ import mongoose from 'mongoose';
 
 export const station_search_url = '/api/stations/search/';
 
-beforeAll(async () => {
-  const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
-  await mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+describe('Redis API', () => {
+  beforeAll(async () => {
+    const mongoUri = process.env.DB_URI || 'mongodb://localhost:27017/dbrs';
+    await mongoose.connect(mongoUri);
   });
-});
 
-afterAll(async () => {
-  await mongoose.disconnect();
-});
+  afterAll(async () => {
+    await mongoose.disconnect();
+  });
 
-describe('Station API', () => {
-  it('should autocomplete ces search', async () => {
+  it('should lock a seat', async () => {
     const res = await request(app)
       .get(station_search_url + '?name=ces');
 
