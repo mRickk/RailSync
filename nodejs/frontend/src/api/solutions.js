@@ -50,3 +50,24 @@ export async function getSolution(solutionId) {
     const data = await response.json();
     return data;
 }
+
+export async function clearUnusedSolutions() {
+    if (localStorage.getItem("authToken") === null) {
+        throw new Error("User not authenticated");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/solutions`, {
+        method: 'DELETE',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem("authToken")}`
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Unknown error');
+    }
+
+    return response; // No content
+}
