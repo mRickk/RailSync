@@ -185,4 +185,21 @@ describe('Reservation API', () => {
         expect(deleteRes.body.message).toEqual('Reservation deleted successfully');
     });
 
+    it("should not accept a reservation with an invalid solution_id", async() => {
+        const res = await request(app)
+            .post(user_url + user_id + "/reservations")
+            .set('Authorization', 'Bearer ' + token)
+            .send({
+                solution_id: 'invalid_solution_id',
+                name: 'Jane',
+                surname: 'Doe',
+                seats: [{
+                    seat: '1A',
+                    train_id: 'Train123',
+                    departure_time: new Date().toISOString(),
+                    arrival_time: new Date().toISOString()
+                }],
+            });
+        expect(res.statusCode).toEqual(404);
+    });
 });
