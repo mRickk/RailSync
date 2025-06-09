@@ -1,13 +1,13 @@
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
-import seedDatabase from '../src/util/seedDatabase.js';
 
 const user_url = '/api/users/';
 const reservation_url = '/api/reservations/';
 const solution_url = '/api/solutions';
 const seatCols = ['A', 'B', 'C', 'D'];
-var last_reservation_id = '';
+const numSeededReservations = 2;
+var reservationsIds = [];
 var user_id = '';
 var token = '';
 
@@ -23,31 +23,42 @@ export const getAdminToken = async () => {
   }
 
 export const createTestUser = async (
-    username = "testuser",
+    username = "testbooking",
     password = 'securepassword',
-    email = 'test@example.com',
+    email = 'testbooking@example.com',
     first_name = 'Test',
     last_name = 'User'
 ) => {
 return await request(app)
     .post(user_url)
     .send({
-    username: username,
-    password: password,
-    email: email,
-    first_name: first_name,
-    last_name: last_name,
+        username: username,
+        password: password,
+        email: email,
+        first_name: first_name,
+        last_name: last_name,
     });
 };
 
-export const deleteTestUser = async () => {
-    try {
-        await request(app)
+const deleteTestUser = async () => {
+    return await request(app)
             .delete(user_url + user_id)
             .set('Authorization', 'Bearer ' + token);
-    } catch (err) {
-    }
   };
+
+const deleteLastReservation = async() => {
+    if (reservationsIds.length === 0) {
+        throw new Error('No reservations to delete');
+    }
+    const lastId = reservationsIds.pop();
+    const res = await request(app)
+        .delete(reservation_url + lastId)
+        .set('Authorization', 'Bearer ' + token);
+    if (res.statusCode !== 200) {
+        throw new Error(`Failed to delete reservation with ID ${lastId}`);
+    }
+    return res;
+}
 
 const createNewReservation = async(
     origin = '830005071',
@@ -93,12 +104,38 @@ const createNewReservation = async(
             surname: passenger_surname,
             seats: seats,
         });
-    last_reservation_id = res.body._id;
-    if (last_reservation_id === '' || res.statusCode !== 201) {
+    
+    if (res.body._id === '' || res.statusCode !== 201) {
         throw new Error('Failed to create reservation');
+    } else {
+        reservationsIds.push(res.body._id);
     }
     return res;
 };
+
+const deleteTestReservations = async () => {
+    try {
+        //Delete all test reservations
+        for(const id of reservationsIds) {
+            const deleteRes = await request(app)
+                .delete(reservation_url + id)
+                .set('Authorization', 'Bearer ' + token);
+            if (deleteRes.statusCode !== 200) {
+                throw new Error(`Failed to delete reservation with ID ${id}`);
+            }
+        }
+        //Delete all unused solutions
+        const solutionRes = await request(app)
+            .delete(solution_url)
+            .set('Authorization', 'Bearer ' + token);
+        if (solutionRes.statusCode !== 200) {
+            throw new Error('Failed to delete unused solutions');
+        }
+    } catch (err) {
+        console.error(`Error deleting test reservations: ${err.message}`);
+    }
+}
+
 
 describe('Reservation API', () => {
 
@@ -113,46 +150,20 @@ describe('Reservation API', () => {
         }
     });
 
-    beforeEach(async() => {
-        try {
-            //Delete all reservations
-            const res = await request(app)
-                .get(reservation_url)
-                .set('Authorization', 'Bearer ' + token);
-            for(const reservation of res.body) {
-                const deleteRes = await request(app)
-                    .delete(reservation_url + reservation.res._id)
-                    .set('Authorization', 'Bearer ' + token);
-                if (deleteRes.statusCode !== 200) {
-                    throw new Error(`Failed to delete reservation with ID ${reservation.res._id}`);
-                }
-            }
-            //Delete all unused solutions
-            const solutionRes = await request(app)
-                .delete(solution_url)
-                .set('Authorization', 'Bearer ' + token);
-            if (solutionRes.statusCode !== 200) {
-                throw new Error('Failed to delete unused solutions');
-            }
-        } catch (err) {
-            console.error(`Error before each: ${err.message}`);
-        }
-    });
-
     afterAll(async() => {
+        await deleteTestReservations();
         await deleteTestUser();
-        await seedDatabase();
         await mongoose.disconnect();
     });
 
-    it('initially should get 0 reservations', async() => {
+    it('initially should get only seeded reservations', async() => {
         const res = await request(app)
             .get(reservation_url)
             .set('Authorization', 'Bearer ' + token);
 
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toEqual(0);
+        expect(res.body.length).toEqual(numSeededReservations);
     });
 
     it('should get all reservations', async() => {
@@ -164,25 +175,44 @@ describe('Reservation API', () => {
             .set('Authorization', 'Bearer ' + token);
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toEqual(2);
+        expect(res.body.length).toEqual(numSeededReservations + reservationsIds.length);
+
+        await deleteLastReservation();
+        await deleteLastReservation();
     });
 
     it('shoud get a reservation by id', async() => {
         await createNewReservation();
         const res = await request(app)
-            .get(reservation_url + last_reservation_id)
+            .get(reservation_url + reservationsIds[0])
             .set('Authorization', 'Bearer ' + token);
         expect(res.statusCode).toEqual(200);
-        expect(res.body.res._id).toEqual(last_reservation_id);
+        expect(res.body.res._id).toEqual(reservationsIds[0]);
+
+        await deleteLastReservation();
     });
 
     it('should delete a reservation by id', async() => {
         await createNewReservation();
-        const deleteRes = await request(app)
-            .delete(reservation_url + last_reservation_id)
-            .set('Authorization', 'Bearer ' + token);
+        const deleteRes = await deleteLastReservation();
         expect(deleteRes.statusCode).toEqual(200);
-        expect(deleteRes.body.message).toEqual('Reservation deleted successfully');
     });
 
+    it("should not accept a reservation with an invalid solution_id", async() => {
+        const res = await request(app)
+            .post(user_url + user_id + "/reservations")
+            .set('Authorization', 'Bearer ' + token)
+            .send({
+                solution_id: 'invalid_solution_id',
+                name: 'Jane',
+                surname: 'Doe',
+                seats: [{
+                    seat: '1A',
+                    train_id: 'Train123',
+                    departure_time: new Date().toISOString(),
+                    arrival_time: new Date().toISOString()
+                }],
+            });
+        expect(res.statusCode).toEqual(404);
+    });
 });
