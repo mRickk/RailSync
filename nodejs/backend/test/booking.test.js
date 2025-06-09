@@ -1,11 +1,12 @@
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
+import seedDatabase from '../src/util/seedDatabase.js';
 // import { getAdminToken } from './user.test.js';
 
 const user_url = '/api/users/';
 const reservation_url = '/api/reservations/';
-const default_sol_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
+const solution_url = '/api/solutions';
 var last_reservation_id = '';
 var user_id = '';
 var token = '';
@@ -57,51 +58,74 @@ beforeAll(async() => {
     const userRes = await createTestUser();
     user_id = userRes.body._id;
     token = await getAdminToken();
+    if (!token) {
+        throw new Error("Failed to retrieve admin token");
+    }
 });
 
-afterEach(async() => {
+beforeEach(async() => {
     try {
         //Delete all reservations
         const res = await request(app)
             .get(reservation_url)
             .set('Authorization', 'Bearer ' + token);
         for(const reservation of res.body) {
-            const deleteRes = await request(app)
+            await request(app)
                 .delete(reservation_url + reservation._id)
                 .set('Authorization', 'Bearer ' + token);
         }
+        //Delete all unused solutions
+        const solutionRes = await request(app)
+            .delete(solution_url)
+            .set('Authorization', 'Bearer ' + token);
     } catch (err) {}
 });
 
 afterAll(async() => {
     await deleteTestUser();
+    await seedDatabase();
     await mongoose.disconnect();
 });
 
 const createNewReservation = async(
-    solution_id = default_sol_id,
-    origin = 'Rimini',
+    origin = 'Cesena',
     destination = 'Bologna Centrale',
-    departure_time = '2025-04-29T09:47:00.000+02:00',
-    arrival_time = '2025-04-29T11:01:00.000+02:00',
-    duration = '1h 14m',
-    status = 'SALEABLE',
-    price_currency = '€',
-    price_amount = 10.8,
+    passenger_name = 'John',
+    passenger_surname = 'Doe',
+    departure_time = new Date().toUTCString()
 ) => {
+    const params = new URLSearchParams({
+        fromStationId: origin,
+        toStationId: destination,
+        datetime: departure_time
+    }).toString();
+
+    const solutionRes = await request(app)
+        .get(`${solution_url}?${params}`)
+        .set('Authorization', `Bearer ${token}`);
+
+    const data = solutionRes.body;
+    if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('No travel solutions returned from the API');
+    }
+    const randomSolution = data[Math.floor(Math.random() * data.length)];
+    if (!randomSolution) {
+        throw new Error('No solutions found for the given parameters');
+    }
+
     const res = await request(app)
         .post(user_url + user_id + "/reservations")
         .set('Authorization', 'Bearer ' + token)
         .send({
-            solution_id: solution_id,
-            origin: origin,
-            destination: destination,
-            departure_time: departure_time,
-            arrival_time: arrival_time,
-            duration: duration,
-            status: status,
-            price_currency: price_currency,
-            price_amount: price_amount,
+            solution_id: randomSolution.solution_id,
+            name: passenger_name,
+            surname: passenger_surname,
+            seats: randomSolution.nodes.map(node => ({
+                seat: '1A',
+                train_id: node.train.train_id,
+                departure_time: node.departure_time,
+                arrival_time: node.arrival_time
+            })),
         });
     last_reservation_id = res.body._id;
     return res;
@@ -113,6 +137,7 @@ describe('Reservation API', () => {
             .get(reservation_url)
             .set('Authorization', 'Bearer ' + token);
 
+        console.log(res.body);
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBe(true);
         expect(res.body.length).toEqual(0);
