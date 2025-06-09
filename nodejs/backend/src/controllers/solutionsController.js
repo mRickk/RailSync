@@ -1,4 +1,5 @@
 import Solution from "../models/solutionModel.js";
+import Reservation from "../models/reservationModel.js";
 
 export const get_solutions = async function(req, res) {
     const { fromStationId, toStationId, datetime } = req.query;
@@ -75,6 +76,21 @@ export const get_solution = async function(req, res) {
             return res.status(404).json({ message: "Solution not found" });
         }
         return res.status(200).json(solution);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const clearUnusedSolutions = async function(req, res) {
+    try {
+        const reservations = await Reservation.find({}, 'solution_id');
+        const reservedSolutionIds = reservations
+            .map(r => r.solution_id?.toString())
+            .filter(Boolean); // Filter out null or undefined values
+        const result = await Solution.deleteMany({ 
+            solution_id: { $nin: reservedSolutionIds }
+        });
+        return res.status(200).json({ message: `${result.deletedCount} unused solutions cleared` });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
