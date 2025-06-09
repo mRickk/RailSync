@@ -26,6 +26,10 @@ export const create_reservation = async function(req, res) {
         }
 
         const reservationData = req.body;
+        const solution = await Solution.findOne({ solution_id: reservationData.solution_id }).exec();
+        if (!solution) {
+            return res.status(404).json({ message: "Solution not found with solution_id=" + reservationData.solution_id });
+        }
         const createdReservation = await Reservation.create(reservationData);
 
         user.reservations.push(createdReservation._id);
