@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 export const user_url = '/api/users/';
 const default_username = 'testuser';
+let admin_token;
 
 export const getAdminToken = async () => {
   const res = await request(app)
@@ -22,6 +23,8 @@ beforeAll(async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+
+  admin_token = await getAdminToken();
 });
 
 afterEach(async () => {
@@ -54,15 +57,16 @@ export const deleteTestUser = async () => {
   try {
     const res = await request(app)
       .get(user_url + '?username=' + default_username)
-      .set('Authorization', 'Bearer ' + await getAdminToken());
+      .set('Authorization', 'Bearer ' + admin_token);
     
     if (res.body.length > 0) {
       const user_id = res.body[0]._id;
       await request(app)
         .delete(user_url + user_id)
-        .set('Authorization', 'Bearer ' + await getAdminToken());
+        .set('Authorization', 'Bearer ' + admin_token);
     }
   } catch (err) {
+     console.warn('deleteTestUser error:', err.message);
   }
 };
 
@@ -105,7 +109,7 @@ describe('User API', () => {
   });
 
   it('should fail to authenticate without credentials', async () => {
-    var res = await request(app)
+    let res = await request(app)
     .post(user_url + 'auth')
     .send({
       password: 'securepassword'
@@ -113,7 +117,7 @@ describe('User API', () => {
 
     expect(res.statusCode).toEqual(400);
 
-    var res = await request(app)
+    res = await request(app)
     .post(user_url + 'auth')
     .send({
       username: default_username
@@ -163,7 +167,7 @@ describe('User API', () => {
     await createTestUser();
     const res = await request(app)
       .get(user_url)
-      .set('Authorization', 'Bearer ' + await getAdminToken());
+      .set('Authorization', 'Bearer ' + admin_token);
     
     expect(res.statusCode).toEqual(200);
     expect(res.body[res.body.length - 1].username).toEqual(default_username);
@@ -174,7 +178,7 @@ describe('User API', () => {
     const userId = createRes.body._id;
     const deleteRes = await request(app)
       .delete(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getAdminToken());
+      .set('Authorization', 'Bearer ' + admin_token);
     expect(deleteRes.statusCode).toEqual(200);
     expect(deleteRes.body.message).toEqual('User deleted successfully');
   });
@@ -185,7 +189,7 @@ describe('User API', () => {
 
     const updateRes = await request(app)
       .patch(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getAdminToken())
+      .set('Authorization', 'Bearer ' + admin_token)
       .send({
         first_name: 'Updated',
         last_name: 'User',
@@ -195,7 +199,7 @@ describe('User API', () => {
 
     const fetchRes = await request(app)
       .get(user_url + userId)
-      .set('Authorization', 'Bearer ' + await getAdminToken());
+      .set('Authorization', 'Bearer ' + admin_token);
     expect(fetchRes.statusCode).toEqual(200);
     expect(fetchRes.body.first_name).toEqual('Updated');
     expect(fetchRes.body.last_name).toEqual('User');
@@ -207,7 +211,7 @@ describe('User API', () => {
 
     const res = await request(app)
       .get(user_url + userId + "/reservations")
-      .set('Authorization', 'Bearer ' + await getAdminToken());
+      .set('Authorization', 'Bearer ' + admin_token);
 
     expect(res.statusCode).toEqual(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -218,34 +222,54 @@ describe('User API', () => {
     const createRes = await createTestUser();
     const userId = createRes.body._id;
 
-    const default_solution_id = 'x6869bc18-eb84-4798-abf5-5ac76290ae8e';
+    const default_solution_id = 'SOL001';
     const reservationData = {
-      solution_id:default_solution_id,
-      origin:'Rimini',
-      destination:'Bologna Centrale',
-      departure_time:'2025-04-29T09:47:00.000+02:00',
-      arrival_time:'2025-04-29T11:01:00.000+02:00',
-      duration:'1h 14m',
-      status:'SALEABLE',
-      price_currency:'€',
-      price_amount:10.8,
-    };
+        name: 'Mario',
+        surname: 'Rossi',
+        solution_id: default_solution_id,
+        reservation_date: '2025-06-09T08:36:50.922Z',
+        seats: [
+          {
+            seat: '2A',
+            train_id: 'FR9400',
+            departure_time: '2025-06-02T09:30:00.000Z',
+            arrival_time: '2025-06-02T10:30:00.000Z'
+          }
+        ]
+      };
 
     const postRes = await request(app)
       .post(user_url + userId + '/reservations')
-      .set('Authorization', 'Bearer ' + await getAdminToken())
+      .set('Authorization', 'Bearer ' + admin_token)
       .send(reservationData);
-
     expect(postRes.statusCode).toEqual(201);
 
     const getRes = await request(app)
       .get(user_url + userId + '/reservations')
-      .set('Authorization', 'Bearer ' + await getAdminToken());
-
+      .set('Authorization', 'Bearer ' + admin_token);
     expect(getRes.statusCode).toEqual(200);
     expect(Array.isArray(getRes.body)).toBe(true);
     expect(getRes.body.length).toBe(1);
-    expect(getRes.body[0].solution_id).toEqual(default_solution_id);
+    expect(getRes.body[0].sol.solution_id).toEqual(default_solution_id);
+  });
+
+  it('should validate a correct token', async () => {
+    await createTestUser();
+    const loginRes = await request(app)
+      .post(user_url + 'auth')
+      .send({ username: default_username, password: 'securepassword' });
+
+    const res = await request(app)
+      .post(user_url + 'validate')
+      .send({ authToken: loginRes.body.token });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toEqual('Token is valid');
+  });
+
+  it('should deny access to get all users without token', async () => {
+    const res = await request(app).get(user_url);
+    expect(res.statusCode).toEqual(401);
   });
 
 });
