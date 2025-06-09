@@ -16,7 +16,7 @@ afterAll(async () => {
   await mongoose.disconnect();
 });
 
-describe('User API', () => {
+describe('Station API', () => {
   it('should autocomplete ces search', async () => {
     const res = await request(app)
       .get(station_search_url + '?name=ces');
