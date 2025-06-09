@@ -10,6 +10,7 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
         <p><strong>Registration date:</strong> {{ new Date(user.registration_date).toLocaleString() }}</p>
+        <button @click="makeAdmin(user._id)" class="make-admin-button">Make Admin</button>
         <button @click="deleteUserAction(user._id)" class="delete-button">Delete</button>
       </div>
     </div>
@@ -17,7 +18,7 @@
 </template>
 
 <script>
-import { getAllUsers, deleteUser } from '@/api/users.js';
+import { getAllUsers, deleteUser, updateUser } from '@/api/users.js';
 
 export default {
   name: "Users",
@@ -51,6 +52,16 @@ export default {
       } catch (err) {
         this.error = 'Failed to delete user: ' + err.message;
       }
+    },
+    async makeAdmin(userId) {
+      if (!confirm("Are you sure you want to make this user an admin?")) return;
+
+      try {
+        await updateUser(userId, { is_admin: true });
+        this.fetchUsers();
+      } catch (err) {
+        this.error = 'Failed to make user an admin: ' + err.message;
+      }
     }
   },
   created() {
@@ -80,5 +91,18 @@ export default {
 }
 .delete-button:hover {
   background-color: #d9363e;
+}
+.make-admin-button {
+  background-color: #f1d63b;
+  color: black;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-top: 8px;
+}
+.make-admin-button:hover {
+  background-color: rgb(197, 162, 65);
 }
 </style>

@@ -47,6 +47,7 @@ export const update_user = async function(req, res) {
         if (user.password) updatedUser.password = await hash(user.password);
         if (user.first_name && user.first_name !== req.user.first_name) updatedUser.first_name = user.first_name;
         if (user.last_name && user.last_name !== req.user.last_name) updatedUser.last_name = user.last_name;
+        if (req.user.is_admin && user.is_admin !== undefined && user.is_admin) updatedUser.is_admin = true;
 
         if (Object.keys(updatedUser).length === 0) {
             return res.status(400).json({ message: 'No fields to update are given' });
