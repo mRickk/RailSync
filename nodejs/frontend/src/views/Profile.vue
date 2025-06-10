@@ -182,7 +182,7 @@ const handleButtonClick = async () => {
             payload.password = form.password
         }
 
-        await updateUser(payload)
+        await updateUser(localStorage.getItem("id"), payload)
         message.value = 'Profilo aggiornato con successo.'
         isEditing.value = false
         form.password = ''

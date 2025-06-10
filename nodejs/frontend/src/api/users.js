@@ -1,16 +1,16 @@
 import { API_BASE_URL } from '@/utils/constants.js';
 
-export async function updateUser(data) {
+export async function updateUser(id, data) {
     try {
         if (localStorage.getItem("authToken") === null) {
             throw new Error("User not authenticated");
         }
 
-        if (localStorage.getItem("id") === null) {
+        if (id === null) {
             throw new Error("Id not found");
         }
 
-        const response = await fetch(`${API_BASE_URL}/users/${localStorage.getItem("id")}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
